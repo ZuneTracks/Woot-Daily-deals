@@ -28,6 +28,25 @@
   Runtime types without that file. The root-level duplicate `Windows.winmd` that
   the target was added to remove is already handled by `<Private>false</Private>`
   on the `Windows` reference, so the Store payload now contains exactly one copy.
+- Extended the .NET Native toolchain to the `Release|x64` and `Store|x64`
+  configurations. The 1.1.3 asset update widened `AppxBundlePlatforms` from
+  `ARM` to include x64, and because `UseDotNetNativeToolchain` had only ever been
+  set for the ARM configurations, the x64 package still declared the unobtainable
+  `Microsoft.VCLibs.140.00 14.0.33519.0` and `Microsoft.NET.CoreRuntime.1.1`.
+  Both architectures now declare identical, Mobile-compatible dependencies, which
+  is also a hard requirement for bundling: MakeAppx rejects a bundle whose member
+  packages disagree under `Package/Dependencies`.
+- Excluded `arm64` from `AppxBundlePlatforms` and declared explicit
+  `RuntimeIdentifiers`. ARM64 compilation requires a minimum version of 16299 or
+  higher, which is incompatible with retaining Windows 10 Mobile support, so the
+  bundle targets `x64|arm` only.
+- Fixed `WOOT_LOCAL_BUILD` being hardcoded into the x64 and ARM64
+  `DefineConstants`, which made the project fail to compile from a clean checkout
+  with `CS0103: The name 'LocalBuildConfiguration' does not exist`, because
+  `LocalBuildConfiguration.cs` is intentionally git-ignored. The guarded
+  `PropertyGroup` that defines the symbol only when that file is present now
+  appears after the per-configuration property groups, so it is no longer
+  overwritten by their absolute `DefineConstants` assignments.
 
 ## v1.1.2 - Live tile reliability
 
