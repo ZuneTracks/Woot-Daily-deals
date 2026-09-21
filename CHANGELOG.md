@@ -47,6 +47,14 @@
   `PropertyGroup` that defines the symbol only when that file is present now
   appears after the per-configuration property groups, so it is no longer
   overwritten by their absolute `DefineConstants` assignments.
+- Added a `ValidateApiKeyPresence` build guard. The app has no UI for entering an
+  API key and nothing ever writes the `LocalSettings["WootApiKey"]` value that
+  `WootApiKeyProvider` falls back to, so `LocalBuildConfiguration.cs` is the only
+  working source of the key. A distributable build made without it compiled and
+  packaged successfully but could never load a feed, showing only "Add your Woot
+  API key in Settings" with no way to do so. Store packaging now fails with an
+  explanatory error, and other non-Debug builds emit a warning, so a
+  non-functional package can no longer be published silently.
 
 ## v1.1.2 - Live tile reliability
 
