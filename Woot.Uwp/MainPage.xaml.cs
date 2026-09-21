@@ -124,7 +124,7 @@ namespace Woot.Uwp
             var key = WootApiKeyProvider.Get();
             if (string.IsNullOrWhiteSpace(key))
             {
-                feed.StatusText = "Add your Woot API key in Settings to load this feed.";
+                feed.StatusText = "Deals are unavailable right now. Please try again later.";
                 return;
             }
 

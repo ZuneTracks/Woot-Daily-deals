@@ -17,7 +17,7 @@ namespace Woot.Uwp.Services
         public async Task<IList<WootDeal>> GetFeedAsync(string feedName, string apiKey, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(apiKey))
-                throw new InvalidOperationException("Enter your Woot API key in Settings before loading deals.");
+                throw new InvalidOperationException("Deals are unavailable right now. Please try again later.");
 
             var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + Uri.EscapeDataString(feedName));
             request.Headers.Add("x-api-key", apiKey.Trim());
@@ -86,7 +86,7 @@ namespace Woot.Uwp.Services
             if (string.IsNullOrWhiteSpace(offerId))
                 throw new InvalidOperationException("This deal does not have a detail identifier.");
             if (string.IsNullOrWhiteSpace(apiKey))
-                throw new InvalidOperationException("Enter your Woot API key in Settings before loading deal details.");
+                throw new InvalidOperationException("Deal details are unavailable right now. Please try again later.");
 
             var ids = new JsonArray();
             ids.Add(JsonValue.CreateStringValue(offerId));

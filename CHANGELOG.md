@@ -55,6 +55,14 @@
   API key in Settings" with no way to do so. Store packaging now fails with an
   explanatory error, and other non-Debug builds emit a warning, so a
   non-functional package can no longer be published silently.
+- Removed the user-facing text asking for a Woot API key. The app now ships with
+  its own key compiled in, so there is nothing for the user to enter, and the app
+  has no UI for entering one. The three affected messages ("Add your Woot API key
+  in Settings to load this feed.", "Enter your Woot API key in Settings before
+  loading deals." and "... before loading deal details.") instructed an action
+  that was impossible to perform. All three now read as generic unavailability
+  messages. The defensive empty-key checks themselves are unchanged; only their
+  wording differs.
 
 ## v1.1.2 - Live tile reliability
 
