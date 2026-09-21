@@ -262,5 +262,13 @@
   <Target Name="ValidateStoreIdentity" BeforeTargets="PrepareForBuild" Condition="'$(StorePackage)' == 'true'">
     <Error Condition="!Exists('$(MSBuildProjectDirectory)\Package.StoreAssociation.xml')" Text="Store packaging requires Package.StoreAssociation.xml. Use Publish &gt; Associate App with the Store after reserving the app name in Partner Center; do not replace it with invented identity values." />
   </Target>
+  <!-- The app has no UI for entering an API key and nothing ever writes the
+       LocalSettings["WootApiKey"] value, so LocalBuildConfiguration.cs is the only
+       working source of the key. A distributable build made without it compiles and
+       packages successfully but can never load any feed, so fail loudly instead. -->
+  <Target Name="ValidateApiKeyPresence" BeforeTargets="PrepareForBuild" Condition="'$(Configuration)' != 'Debug'">
+    <Error Condition="'$(StorePackage)' == 'true' And !Exists('$(MSBuildProjectDirectory)\LocalBuildConfiguration.cs')" Text="Store packaging requires Woot.Uwp\LocalBuildConfiguration.cs. Without it WOOT_LOCAL_BUILD is undefined, no API key is compiled in, and the submitted app cannot load any feed. Copy LocalBuildConfiguration.cs.example and enter the private key; do not commit it." />
+    <Warning Condition="'$(StorePackage)' != 'true' And !Exists('$(MSBuildProjectDirectory)\LocalBuildConfiguration.cs')" Text="Building $(Configuration) without Woot.Uwp\LocalBuildConfiguration.cs. No API key will be compiled in, so this package cannot load any feed. This is expected for a compile-only or CI build, but do not publish the resulting package." />
+  </Target>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
 </Project>
