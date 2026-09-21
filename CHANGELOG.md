@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased - Windows 10 Mobile Store install fix
+
+- Fixed the app terminating immediately after the splash screen when installed
+  from the Microsoft Store on Windows 10 Mobile. The package declared a
+  `Microsoft.VCLibs.140.00` dependency with `MinVersion 14.0.33519.0`, which
+  Windows 10 Mobile cannot obtain: Mobile stopped receiving framework-package
+  updates at OS build 15254 and its Store can only provision VCLibs up to
+  roughly `14.0.24217.0`. The dependency was therefore never satisfied even
+  though the Store install itself reported success. Sideloading was unaffected
+  because the sideload output ships its own VCLibs payload that is installed by
+  hand, which is why the defect was not caught by on-device testing.
+- Upgraded `Microsoft.NETCore.UniversalWindowsPlatform` from `5.2.9` to
+  `6.2.14`, which resolves `Microsoft.Net.Native.Compiler 1.7.6`. The package
+  now declares `Microsoft.VCLibs.140.00 MinVersion 14.0.22929.0` plus
+  `Microsoft.NET.Native.Framework.1.7` / `Microsoft.NET.Native.Runtime.1.7`
+  instead of `Microsoft.NET.CoreRuntime.1.1`.
+- Enabled `UseDotNetNativeToolchain` for the `Release|ARM` and `Store|ARM`
+  configurations so the .NET Native framework references are actually applied
+  at packaging time.
+- `TargetPlatformMinVersion` deliberately remains `10.0.15063.0`. Raising it to
+  16299 would drop Windows 10 Mobile support entirely, since Mobile's last build
+  is 15254.
+- Removed the `ExcludeSdkWinmdsFromStorePackage` target, which stripped
+  `WinMetadata\Windows.winmd` from every configuration including Store uploads.
+  The Store recompiles uploaded MSIL in the cloud and cannot resolve Windows
+  Runtime types without that file. The root-level duplicate `Windows.winmd` that
+  the target was added to remove is already handled by `<Private>false</Private>`
+  on the `Windows` reference, so the Store payload now contains exactly one copy.
+
 ## v1.1.2 - Live tile reliability
 
 - Fixed live-tile text ordering so the previously viewed deal is displayed before

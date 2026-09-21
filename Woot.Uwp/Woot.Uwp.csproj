@@ -61,6 +61,7 @@
     <Optimize>true</Optimize>
     <DefineConstants>TRACE;NETFX_CORE</DefineConstants>
     <PlatformTarget>ARM</PlatformTarget>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Store|ARM'">
     <OutputPath>bin\ARM\Store\</OutputPath>
@@ -74,12 +75,13 @@
     <UapAppxPackageBuildMode>StoreUpload</UapAppxPackageBuildMode>
     <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
     <StorePackage>true</StorePackage>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <PropertyGroup Condition="Exists('$(MSBuildProjectDirectory)\LocalBuildConfiguration.cs')">
     <DefineConstants>$(DefineConstants);WOOT_LOCAL_BUILD</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.2.9" />
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
   </ItemGroup>
   <PropertyGroup>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
@@ -178,9 +180,4 @@
     <Error Condition="!Exists('$(MSBuildProjectDirectory)\Package.StoreAssociation.xml')" Text="Store packaging requires Package.StoreAssociation.xml. Use Publish &gt; Associate App with the Store after reserving the app name in Partner Center; do not replace it with invented identity values." />
   </Target>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
-  <Target Name="ExcludeSdkWinmdsFromStorePackage" AfterTargets="_AddUnionWinmd;_AddFxWinmd">
-    <ItemGroup>
-      <PackagingOutputs Remove="@(UnionMetadataWinmd);@(WinmdsFromFrameworkSDKs)" />
-    </ItemGroup>
-  </Target>
 </Project>

@@ -2,6 +2,7 @@
 [Bb]in/
 [Oo]bj/
 [Aa]ppPackages/
+[Bb]undleArtifacts/
 
 # Visual Studio and local settings
 .vs/
