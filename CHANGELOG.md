@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased - Windows 10 Mobile Store install fix
+## v1.1.4 - Windows 10 Mobile Store install fix
+
+This is the release that actually fixes the Windows 10 Mobile crash. v1.1.3 was
+built shortly before the fix landed and still carries the defective dependency
+set, so Mobile users must update to v1.1.4.
 
 - Fixed the app terminating immediately after the splash screen when installed
   from the Microsoft Store on Windows 10 Mobile. The package declared a
@@ -77,6 +81,19 @@
   back to the in-box Windows SDK ILC path and emits the Mobile-incompatible
   `Microsoft.VCLibs.140.00 14.0.33519.0` plus `Microsoft.NET.CoreRuntime.1.1`. A
   platform added later now inherits the correct setting automatically.
+
+## v1.1.3 - Rebrand and new artwork
+
+Released to the Store before the Windows 10 Mobile packaging fix below was
+merged, so this build still declares `Microsoft.VCLibs.140.00 14.0.33519.0` and
+`Microsoft.NET.CoreRuntime.1.1` and still terminates after the splash screen
+when installed from the Store on Windows 10 Mobile. Superseded by v1.1.4.
+
+- Renamed the app to "Daily Deals for Woot!" and updated the About text to
+  describe it as a Universal Windows app for Windows 10 Mobile/Desktop.
+- Replaced the app icons and tile artwork, adding badge logos, wide tile
+  artwork and additional scale variants.
+- Moved to the `ZuneTracks.WootDailydeals` package identity.
 
 ## v1.1.2 - Live tile reliability
 
