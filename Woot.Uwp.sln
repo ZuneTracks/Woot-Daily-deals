@@ -8,15 +8,12 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|ARM = Debug|ARM
-		Debug|ARM64 = Debug|ARM64
 		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
 		Release|ARM = Release|ARM
-		Release|ARM64 = Release|ARM64
 		Release|x64 = Release|x64
 		Store|Any CPU = Store|Any CPU
 		Store|ARM = Store|ARM
-		Store|ARM64 = Store|ARM64
 		Store|x64 = Store|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
@@ -26,9 +23,6 @@ Global
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|ARM.ActiveCfg = Debug|ARM
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|ARM.Build.0 = Debug|ARM
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|ARM.Deploy.0 = Debug|ARM
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|ARM64.ActiveCfg = Debug|ARM64
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|ARM64.Build.0 = Debug|ARM64
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|ARM64.Deploy.0 = Debug|ARM64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|x64.ActiveCfg = Debug|x64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|x64.Build.0 = Debug|x64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Debug|x64.Deploy.0 = Debug|x64
@@ -38,9 +32,6 @@ Global
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|ARM.ActiveCfg = Release|ARM
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|ARM.Build.0 = Release|ARM
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|ARM.Deploy.0 = Release|ARM
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|ARM64.ActiveCfg = Release|ARM64
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|ARM64.Build.0 = Release|ARM64
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|ARM64.Deploy.0 = Release|ARM64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|x64.ActiveCfg = Release|x64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|x64.Build.0 = Release|x64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Release|x64.Deploy.0 = Release|x64
@@ -50,9 +41,6 @@ Global
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|ARM.ActiveCfg = Release|x64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|ARM.Build.0 = Release|x64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|ARM.Deploy.0 = Release|x64
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|ARM64.ActiveCfg = Store|ARM64
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|ARM64.Build.0 = Store|ARM64
-		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|ARM64.Deploy.0 = Store|ARM64
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|x64.ActiveCfg = Store|ARM
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|x64.Build.0 = Store|ARM
 		{A4BF4D44-6B1F-414F-92EC-A7D7F6BB3AB0}.Store|x64.Deploy.0 = Store|ARM

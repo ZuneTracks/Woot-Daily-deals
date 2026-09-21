@@ -74,7 +74,6 @@
     <Optimize>true</Optimize>
     <DefineConstants>TRACE;NETFX_CORE</DefineConstants>
     <PlatformTarget>ARM</PlatformTarget>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Store|ARM'">
     <OutputPath>bin\ARM\Store\</OutputPath>
@@ -88,7 +87,6 @@
     <UapAppxPackageBuildMode>StoreUpload</UapAppxPackageBuildMode>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <StorePackage>true</StorePackage>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
@@ -110,7 +108,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
     <DefineConstants>TRACE;NETFX_CORE;CODE_ANALYSIS</DefineConstants>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
     <Optimize>true</Optimize>
     <NoStdLib>true</NoStdLib>
     <DebugType>pdbonly</DebugType>
@@ -122,7 +119,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Store|x64'">
     <OutputPath>bin\x64\Store\</OutputPath>
     <DefineConstants>TRACE;NETFX_CORE;CODE_ANALYSIS</DefineConstants>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
     <Optimize>true</Optimize>
     <NoStdLib>true</NoStdLib>
     <DebugType>pdbonly</DebugType>
@@ -131,41 +127,24 @@
     <LangVersion>7.3</LangVersion>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\ARM64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;NETFX_CORE;CODE_ANALYSIS</DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <DebugType>full</DebugType>
-    <PlatformTarget>ARM64</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <LangVersion>7.3</LangVersion>
-    <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM64'">
-    <OutputPath>bin\ARM64\Release\</OutputPath>
-    <DefineConstants>TRACE;NETFX_CORE;CODE_ANALYSIS</DefineConstants>
-    <Optimize>true</Optimize>
-    <NoStdLib>true</NoStdLib>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>ARM64</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <LangVersion>7.3</LangVersion>
-    <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Store|ARM64'">
-    <OutputPath>bin\ARM64\Store\</OutputPath>
-    <DefineConstants>TRACE;NETFX_CORE;CODE_ANALYSIS</DefineConstants>
-    <Optimize>true</Optimize>
-    <NoStdLib>true</NoStdLib>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>ARM64</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <LangVersion>7.3</LangVersion>
-    <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
   <PropertyGroup Condition="Exists('$(MSBuildProjectDirectory)\LocalBuildConfiguration.cs')">
     <DefineConstants>$(DefineConstants);WOOT_LOCAL_BUILD</DefineConstants>
+  </PropertyGroup>
+  <!--
+    Force the .NET Native toolchain supplied by Microsoft.NETCore.UniversalWindowsPlatform
+    for every non-Debug configuration. Without this property the 1.7.6 compiler's
+    props/targets never inject the framework SDK references, and packaging silently falls
+    back to the in-box Windows SDK ILC path. That fallback emits
+    Microsoft.VCLibs.140.00 MinVersion 14.0.33519.0 plus Microsoft.NET.CoreRuntime.1.1,
+    and Windows 10 Mobile can never provision that VCLibs minimum: Mobile stopped
+    receiving framework-package updates at OS build 15254 and its Store tops out around
+    14.0.24217.0. The Store install then succeeds but the app terminates right after the
+    splash screen. This is declared once, for all non-Debug configurations, rather than
+    per configuration, so that a platform added later by the Visual Studio Configuration
+    Manager inherits it automatically instead of silently shipping the broken set.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Windows">

@@ -63,6 +63,20 @@
   that was impossible to perform. All three now read as generic unavailability
   messages. The defensive empty-key checks themselves are unchanged; only their
   wording differs.
+- Removed the `Debug|ARM64`, `Release|ARM64` and `Store|ARM64` configurations from
+  `Woot.Uwp.csproj` and `Woot.Uwp.sln`. Visual Studio 2022 adds ARM64 automatically
+  when the Configuration Manager is opened, and it arrived that way rather than by
+  intent. ARM64 also cannot be supported here: it requires
+  `TargetPlatformMinVersion` 16299 or higher, which would drop Windows 10 Mobile.
+  The supported platform set is ARM and x64, matching `AppxBundlePlatforms`.
+- Declared `UseDotNetNativeToolchain` once, in a single
+  `Condition="'$(Configuration)' != 'Debug'"` property group, replacing the four
+  per-configuration copies in `Release|ARM`, `Store|ARM`, `Release|x64` and
+  `Store|x64`. The per-configuration form was fragile: the ARM64 groups added by
+  Visual Studio did not set it, and a configuration that omits it silently falls
+  back to the in-box Windows SDK ILC path and emits the Mobile-incompatible
+  `Microsoft.VCLibs.140.00 14.0.33519.0` plus `Microsoft.NET.CoreRuntime.1.1`. A
+  platform added later now inherits the correct setting automatically.
 
 ## v1.1.2 - Live tile reliability
 
