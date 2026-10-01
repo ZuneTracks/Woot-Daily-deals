@@ -2,8 +2,8 @@
 
 Woot! browser for Windows 10 Mobile is a native Universal Windows Platform app
 for browsing Woot! daily deals. It uses a touch-friendly layout with swipeable
-category pivots, native deal cards, Woot green accents, light/dark appearance
-options, and native offer details.
+category pivots, native deal cards, per-category sorting, Woot green accents,
+light/dark appearance options, and native offer details.
 
 ## Supported feeds
 
@@ -14,6 +14,23 @@ The app loads feed data from `https://developer.woot.com/feed/{feedname}` and
 renders titles, subtitles, prices, state, featured status, and images with UWP
 controls. Offer links open externally through the system browser; catalog HTML
 is not rendered in a WebView.
+
+## Sorting
+
+The toolbar sort selector reorders the deals in the current category. Available
+orders are default feed order, price low to high, price high to low, biggest
+discount, newest first, ending soonest, most popular, available first, featured
+first, title A to Z, and title Z to A.
+
+Each category keeps its own sort, saved locally under `WootSort_<FeedName>` and
+restored on the next launch. Sorting runs on the device against the deals
+already loaded, because the Woot feed endpoint takes no sort parameter; changing
+the sort therefore costs no network request.
+
+Deals that are missing the value a sort needs are listed last, and ties keep
+their original feed order. Woot does not populate every field on every feed, so
+when no deal in a category carries the required value the status line adds
+"(not available for this feed)" next to the sort name.
 
 ## Settings
 

@@ -19,11 +19,13 @@ namespace Woot.Uwp
     {
         private const string ApiKeySetting = "WootApiKey";
         private const string StartCategorySetting = "WootStartCategory";
+        private const string SortSettingPrefix = "WootSort_";
         private static readonly TimeSpan FeedRefreshInterval = TimeSpan.FromMinutes(15);
         private readonly WootApiClient apiClient = new WootApiClient();
         private readonly HashSet<int> loadingFeeds = new HashSet<int>();
         private readonly DispatcherTimer refreshTimer;
         private bool hasLoadedOnce;
+        private bool suppressSortSelection;
         private readonly string[] feedNames = { "Featured", "All", "Clearance", "Computers", "Electronics", "Home", "Gourmet", "Shirts", "Sports", "Tools", "Woot-Off" };
 
         public ObservableCollection<WootFeedViewModel> Feeds { get; private set; }
@@ -33,17 +35,28 @@ namespace Woot.Uwp
             InitializeComponent();
             Feeds = new ObservableCollection<WootFeedViewModel>();
             foreach (var name in feedNames)
-                Feeds.Add(new WootFeedViewModel(name));
+                Feeds.Add(new WootFeedViewModel(name) { Sort = LoadSort(name) });
             DataContext = this;
             RootGrid.RequestedTheme = IsDarkTheme() ? ElementTheme.Dark : ElementTheme.Light;
             for (var index = 0; index < FeedPivot.Items.Count; index++)
                 ((PivotItem)FeedPivot.Items[index]).Header = CreateCategoryHeader(feedNames[index], index == 0);
+            SortSelector.ItemsSource = WootDealSortOption.All;
             var savedCategory = ApplicationData.Current.LocalSettings.Values[StartCategorySetting];
             var categoryIndex = savedCategory is int ? (int)savedCategory : 0;
             FeedPivot.SelectedIndex = categoryIndex >= 0 && categoryIndex < feedNames.Length ? categoryIndex : 0;
+            UpdateCategoryHeaders(FeedPivot.SelectedIndex);
+            SyncSortSelector();
             refreshTimer = new DispatcherTimer { Interval = FeedRefreshInterval };
             refreshTimer.Tick += RefreshTimer_Tick;
             refreshTimer.Start();
+        }
+
+        private static WootDealSort LoadSort(string feedName)
+        {
+            var stored = ApplicationData.Current.LocalSettings.Values[SortSettingPrefix + feedName];
+            if (stored is int && WootDealSortOption.IsDefined((int)stored))
+                return (WootDealSort)(int)stored;
+            return WootDealSort.Default;
         }
 
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -55,15 +68,67 @@ namespace Woot.Uwp
         {
             base.OnNavigatedTo(e);
             hasLoadedOnce = true;
+            UpdateCategoryHeaders(FeedPivot.SelectedIndex);
+            SyncSortSelector();
             _ = LoadSelectedFeedAsync(false);
         }
 
         private async void FeedPivot_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!hasLoadedOnce || FeedPivot.SelectedIndex < 0 || FeedPivot.SelectedIndex >= Feeds.Count)
+            if (FeedPivot.SelectedIndex < 0 || FeedPivot.SelectedIndex >= Feeds.Count)
                 return;
             UpdateCategoryHeaders(FeedPivot.SelectedIndex);
+            SyncSortSelector();
+            if (!hasLoadedOnce)
+                return;
             await LoadFeedAsync(FeedPivot.SelectedIndex, false);
+        }
+
+        private void SyncSortSelector()
+        {
+            var index = FeedPivot.SelectedIndex;
+            if (index < 0 || index >= Feeds.Count)
+                return;
+            suppressSortSelection = true;
+            SortSelector.SelectedIndex = WootDealSortOption.IndexOf(Feeds[index].Sort);
+            suppressSortSelection = false;
+        }
+
+        private void SortSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (suppressSortSelection)
+                return;
+            var index = FeedPivot.SelectedIndex;
+            var option = SortSelector.SelectedItem as WootDealSortOption;
+            if (option == null || index < 0 || index >= Feeds.Count)
+                return;
+            var feed = Feeds[index];
+            feed.Sort = option.Sort;
+            ApplicationData.Current.LocalSettings.Values[SortSettingPrefix + feed.Name] = (int)option.Sort;
+            UpdateFeedStatus(feed);
+        }
+
+        /// <summary>
+        /// Keeps the feed caption in step with the loaded deal count and the active sort.
+        /// </summary>
+        private static void UpdateFeedStatus(WootFeedViewModel feed)
+        {
+            if (!feed.IsLoaded)
+                return;
+            var count = feed.FeedOrderDeals.Count;
+            if (count == 0)
+            {
+                feed.StatusText = "No deals were returned.";
+                return;
+            }
+            var status = count + " deals";
+            if (feed.Sort != WootDealSort.Default)
+            {
+                status += " - " + WootDealSortOption.All[WootDealSortOption.IndexOf(feed.Sort)].Label.ToLowerInvariant();
+                if (!feed.IsSortSupported)
+                    status += " (not available for this feed)";
+            }
+            feed.StatusText = status;
         }
 
         private void UpdateCategoryHeaders(int selectedIndex)
@@ -135,13 +200,11 @@ namespace Woot.Uwp
             try
             {
                 var deals = await apiClient.GetFeedAsync(feed.Name, key, loadCancellation.Token);
-                feed.Deals.Clear();
-                foreach (var deal in deals)
-                    feed.Deals.Add(deal);
+                feed.SetDeals(deals);
                 feed.IsLoaded = true;
-                feed.StatusText = deals.Count == 0 ? "No deals were returned." : deals.Count + " deals";
+                UpdateFeedStatus(feed);
                 if (index == 0)
-                    WootTileService.Update(null, feed.Deals);
+                    WootTileService.Update(null, feed.FeedOrderDeals);
             }
             catch (OperationCanceledException)
             {
