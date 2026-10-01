@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,6 +61,7 @@ namespace Woot.Uwp.Services
             if (items == null)
                 throw new FormatException("The Woot response did not contain a deal list.");
 
+            var feedOrder = 0;
             foreach (var item in items)
             {
                 if (item.ValueType != JsonValueType.Object)
@@ -72,10 +74,16 @@ namespace Woot.Uwp.Services
                     Subtitle = ReadString(obj, "Subtitle", "subtitle"),
                     SalePrice = FormatPrice(obj, "Price", "price", "SalePrice", "salePrice"),
                     ListPrice = FormatPrice(obj, "ListPrice", "listPrice", "OriginalPrice", "originalPrice"),
+                    SalePriceValue = ReadPrice(obj, "Price", "price", "SalePrice", "salePrice"),
+                    ListPriceValue = ReadPrice(obj, "ListPrice", "listPrice", "OriginalPrice", "originalPrice"),
+                    StartDate = ReadDate(obj, "StartDate", "startDate"),
+                    EndDate = ReadDate(obj, "EndDate", "endDate"),
+                    SoldOutPercentage = ReadNumber(obj, "SoldOutPercentage", "soldOutPercentage", "PercentageRemaining", "percentageRemaining"),
                     ImageUrl = ReadString(obj, "Photo", "photo", "Image", "image", "ImageUrl", "imageUrl"),
                     OfferUrl = ReadString(obj, "Url", "url", "SaleUrl", "saleUrl"),
                     IsSoldOut = ReadBool(obj, "IsSoldOut", "isSoldOut", "SoldOut", "soldOut"),
-                    IsFeatured = ReadBool(obj, "IsFeatured", "isFeatured", "Featured", "featured")
+                    IsFeatured = ReadBool(obj, "IsFeatured", "isFeatured", "Featured", "featured"),
+                    FeedOrder = feedOrder++
                 });
             }
             return deals;
@@ -218,6 +226,101 @@ namespace Woot.Uwp.Services
                         return minimum.GetNumber().ToString("C");
                 }
             }
+            return null;
+        }
+
+        private static double? ReadPrice(JsonObject obj, params string[] names)
+        {
+            foreach (var name in names)
+            {
+                IJsonValue value;
+                if (!obj.TryGetValue(name, out value))
+                    continue;
+                if (value.ValueType == JsonValueType.Number)
+                    return value.GetNumber();
+                if (value.ValueType == JsonValueType.String)
+                {
+                    var parsed = ParseFirstNumber(value.GetString());
+                    if (parsed.HasValue)
+                        return parsed;
+                    continue;
+                }
+                if (value.ValueType == JsonValueType.Object)
+                {
+                    var range = value.GetObject();
+                    IJsonValue minimum;
+                    if (range.TryGetValue("Minimum", out minimum) && minimum.ValueType == JsonValueType.Number)
+                        return minimum.GetNumber();
+                }
+            }
+            return null;
+        }
+
+        private static double? ReadNumber(JsonObject obj, params string[] names)
+        {
+            foreach (var name in names)
+            {
+                IJsonValue value;
+                if (!obj.TryGetValue(name, out value))
+                    continue;
+                if (value.ValueType == JsonValueType.Number)
+                    return value.GetNumber();
+                if (value.ValueType == JsonValueType.String)
+                {
+                    var parsed = ParseFirstNumber(value.GetString());
+                    if (parsed.HasValue)
+                        return parsed;
+                }
+            }
+            return null;
+        }
+
+        private static DateTimeOffset? ReadDate(JsonObject obj, params string[] names)
+        {
+            foreach (var name in names)
+            {
+                IJsonValue value;
+                if (!obj.TryGetValue(name, out value) || value.ValueType != JsonValueType.String)
+                    continue;
+                DateTimeOffset parsed;
+                if (DateTimeOffset.TryParse(value.GetString(), CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out parsed))
+                    return parsed;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Extracts the first numeric run from text such as "$24.99" or "1,299.99 - 1,499.99"
+        /// so prices that arrive as display strings can still be sorted.
+        /// </summary>
+        private static double? ParseFirstNumber(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            var digits = new System.Text.StringBuilder();
+            var started = false;
+            foreach (var character in value)
+            {
+                if (char.IsDigit(character))
+                {
+                    digits.Append(character);
+                    started = true;
+                }
+                else if (character == '.' && started && digits.ToString().IndexOf('.') < 0)
+                    digits.Append(character);
+                else if (character == ',' && started)
+                    continue;
+                else if (character == '-' && !started && digits.Length == 0)
+                    digits.Append(character);
+                else if (started)
+                    break;
+            }
+
+            double number;
+            if (double.TryParse(digits.ToString().TrimEnd('.'), NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+                return number;
             return null;
         }
     }

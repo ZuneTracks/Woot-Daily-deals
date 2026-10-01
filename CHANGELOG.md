@@ -1,5 +1,44 @@
 # Changelog
 
+## Unreleased - Per-category deal sorting
+
+- Added a sort selector to the main toolbar that reorders the deals in the
+  current category. Each of the eleven categories keeps its own sort, which is
+  saved to `ApplicationData.Current.LocalSettings` under `WootSort_<FeedName>`
+  and restored on the next launch. Sorting is applied entirely on the device:
+  the Woot feed endpoint accepts no sort parameter, so no extra network request
+  is made and switching sorts works offline against the already-loaded feed.
+- Added eleven sort orders: default feed order, price low to high, price high to
+  low, biggest discount, newest first, ending soonest, most popular, available
+  first, featured first, title A to Z, and title Z to A.
+- Captured the numeric and date values the new sorts need. `WootApiClient`
+  previously converted prices to display strings during parsing and discarded
+  the underlying numbers, so nothing could sort on them. `WootDeal` now also
+  carries `SalePriceValue`, `ListPriceValue`, `StartDate`, `EndDate`,
+  `SoldOutPercentage`, a computed `DiscountPercent`, and `FeedOrder`. The
+  existing `SalePrice` and `ListPrice` display strings are unchanged, and the
+  numeric fields are read with the same tolerant name candidates so the two can
+  never disagree.
+- Deals missing the field a sort needs are placed last rather than treated as
+  zero, which would have put every unpriced deal at the top of "price low to
+  high". Every sort breaks ties on `FeedOrder`, so equal deals keep their
+  original relative order and repeated sorts are stable.
+- The feed caption now names the active sort, and appends "(not available for
+  this feed)" when no deal in the category carries the required field. Woot does
+  not return `SoldOutPercentage` on every feed, so "most popular" can be inert;
+  without the notice the list would appear to ignore the selection.
+- `WootFeedViewModel` now keeps the unsorted feed in `FeedOrderDeals` and sorts
+  into the existing `Deals` collection in place, so the XAML bindings stay
+  attached. The Featured live tile reads `FeedOrderDeals`, keeping tile content
+  on Woot's own ranking regardless of the sort the user picked.
+- Fixed the category underline staying on "Featured" at launch when a different
+  startup category was saved. `FeedPivot_SelectionChanged` returned before
+  updating the headers while `hasLoadedOnce` was still false, and the pivot
+  raises that event from the constructor.
+- Moved the "If nothing appears, press Refresh." hint out of the toolbar, where
+  the sort selector now sits, into the initial per-category status text, so the
+  guidance appears on the empty feed it refers to.
+
 ## v1.1.4 - Windows 10 Mobile Store install fix
 
 This is the release that actually fixes the Windows 10 Mobile crash. v1.1.3 was

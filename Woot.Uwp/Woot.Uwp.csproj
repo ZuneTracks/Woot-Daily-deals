@@ -156,6 +156,7 @@
     <Compile Include="App.xaml.cs" />
     <Compile Include="MainPage.xaml.cs" />
     <Compile Include="Models\WootDeal.cs" />
+    <Compile Include="Models\WootDealSort.cs" />
     <Compile Include="Models\WootOfferDetails.cs" />
     <Compile Include="Models\WootFeedViewModel.cs" />
     <Compile Include="Services\WootApiClient.cs" />
