@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.2.1 - About flyout improvements
+
+- Moved the installed build number directly below the app name in both About
+  flyouts, before the app description.
+- Updated the main-page About flyout to use the current "Daily Deals for Woot!"
+  name and description, matching the Settings flyout.
+- Made the ZuneTracks attribution link directly to the app's GitHub repository
+  and removed the separate GitHub profile link. Every line after the heading now
+  uses consistent spacing.
+- Updated the package version to `1.2.1.0`.
+
 ## v1.2.0 - Per-category deal sorting
 
 - Added a sort selector to the main toolbar that reorders the deals in the
