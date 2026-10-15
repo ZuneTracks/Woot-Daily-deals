@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased - Per-category deal sorting
+## v1.2.0 - Per-category deal sorting
 
 - Added a sort selector to the main toolbar that reorders the deals in the
   current category. Each of the eleven categories keeps its own sort, which is
@@ -38,6 +38,7 @@
 - Moved the "If nothing appears, press Refresh." hint out of the toolbar, where
   the sort selector now sits, into the initial per-category status text, so the
   guidance appears on the empty feed it refers to.
+- Updated the package version to `1.2.0.0`.
 
 ## v1.1.4 - Windows 10 Mobile Store install fix
 

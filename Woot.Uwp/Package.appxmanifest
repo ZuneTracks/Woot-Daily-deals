@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
   <!-- Associate this project with the Store before creating Store packages. The Store association must replace the development identity values. -->
-  <Identity Name="ZuneTracks.WootDailydeals" Publisher="CN=3ED86B18-5F5F-4AE0-AA9C-697B841F55A7" Version="1.1.4.0" />
+  <Identity Name="ZuneTracks.WootDailydeals" Publisher="CN=3ED86B18-5F5F-4AE0-AA9C-697B841F55A7" Version="1.2.0.0" />
   <mp:PhoneIdentity PhoneProductId="a0fd0d39-0ba6-4c53-9d99-a08b0c9c945a" PhonePublisherId="1E7B7E0D-A3A8-4D0F-BE4F-7A2E8E1D6B1A" />
   <Properties>
     <DisplayName>Daily Deals for Woot!</DisplayName>
