@@ -3,6 +3,7 @@ using Windows.ApplicationModel;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Navigation;
 
 namespace Woot.Uwp.Views
@@ -46,17 +47,16 @@ namespace Woot.Uwp.Views
             var flyout = new Flyout();
             var content = new StackPanel { Width = 260, Padding = new Windows.UI.Xaml.Thickness(8) };
             content.Children.Add(new TextBlock { Text = "Daily Deals for Woot!", FontSize = 24 });
-            content.Children.Add(new TextBlock { Text = "Daily Deals for Woot! is a Universal Windows app for Windows 10 Mobile/Desktop. This app allows you to browse the current deals found on Woot!", TextWrapping = TextWrapping.Wrap, Margin = new Windows.UI.Xaml.Thickness(0, 10, 0, 0) });
-            content.Children.Add(new TextBlock { Text = "This app is not affiliated with Woot!, Amazon, or any of their affiliates.", TextWrapping = TextWrapping.Wrap, Margin = new Windows.UI.Xaml.Thickness(0, 10, 0, 0) });
             var version = Package.Current.Id.Version;
             content.Children.Add(new TextBlock { Text = string.Format("Build {0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision), Margin = new Windows.UI.Xaml.Thickness(0, 10, 0, 0) });
-            content.Children.Add(new TextBlock { Text = "Developed by ZuneTracks" });
-            content.Children.Add(new HyperlinkButton
-            {
-                Content = "github.com/ZuneTracks",
-                NavigateUri = new Uri("https://github.com/ZuneTracks"),
-                Margin = new Windows.UI.Xaml.Thickness(0, 4, 0, 0)
-            });
+            content.Children.Add(new TextBlock { Text = "Daily Deals for Woot! is a Universal Windows app for Windows 10 Mobile/Desktop. This app allows you to browse the current deals found on Woot!", TextWrapping = TextWrapping.Wrap, Margin = new Windows.UI.Xaml.Thickness(0, 10, 0, 0) });
+            content.Children.Add(new TextBlock { Text = "This app is not affiliated with Woot!, Amazon, or any of their affiliates.", TextWrapping = TextWrapping.Wrap, Margin = new Windows.UI.Xaml.Thickness(0, 10, 0, 0) });
+            var developer = new TextBlock { Margin = new Windows.UI.Xaml.Thickness(0, 10, 0, 0) };
+            developer.Inlines.Add(new Run { Text = "Developed by " });
+            var developerLink = new Hyperlink { NavigateUri = new Uri("https://github.com/ZuneTracks/Woot-Daily-deals") };
+            developerLink.Inlines.Add(new Run { Text = "ZuneTracks" });
+            developer.Inlines.Add(developerLink);
+            content.Children.Add(developer);
             flyout.Content = content;
             flyout.ShowAt(button);
         }
