@@ -70,6 +70,16 @@
             </Grid>
         </Border>
         <Border Grid.Row="1" Background="{StaticResource PhoneAccentBrush}" />
+        <!--
+            An indeterminate ProgressBar animates on the composition thread, so it
+            keeps moving even if the UI thread is momentarily busy. That makes it the
+            one indicator that cannot itself freeze, which is exactly what tells the
+            user the app is working rather than hung.
+        -->
+        <ProgressBar x:Name="LoadingBar" Grid.Row="1" Height="4" Margin="0" Padding="0"
+                     IsIndeterminate="False" Visibility="Collapsed"
+                     Foreground="{StaticResource PhonePrimaryTextBrush}"
+                     Background="Transparent" />
         <Grid Grid.Row="2" Margin="16,4,16,4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />

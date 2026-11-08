@@ -30,7 +30,11 @@ namespace Woot.Uwp.Services
                     throw new HttpRequestException("Woot returned HTTP " + (int)response.StatusCode + ".");
 
                 var json = await response.Content.ReadAsStringAsync();
-                return ParseDeals(json);
+
+                // Parsing is the expensive half of a feed load: every field of every
+                // deal is a call across the WinRT boundary, which on a phone adds up
+                // to enough work to freeze the UI if it is done on its thread.
+                return await Task.Run(() => ParseDeals(json), cancellationToken);
             }
         }
 
@@ -116,7 +120,7 @@ namespace Woot.Uwp.Services
                     if (!response.IsSuccessStatusCode)
                         throw new HttpRequestException("Woot returned HTTP " + (int)response.StatusCode + ".");
                     var json = await response.Content.ReadAsStringAsync();
-                    return ParseOfferDetails(json);
+                    return await Task.Run(() => ParseOfferDetails(json), cancellationToken);
                 }
             }
         }
