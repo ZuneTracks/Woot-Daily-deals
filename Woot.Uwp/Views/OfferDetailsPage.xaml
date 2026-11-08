@@ -14,6 +14,7 @@
                     <TextBlock x:Name="ListPriceText" TextDecorations="Strikethrough" Foreground="{StaticResource PhoneMutedTextBrush}" Margin="12,4,0,0" />
                 </StackPanel>
                 <TextBlock x:Name="ContentText" Foreground="{StaticResource PhonePrimaryTextBrush}" TextWrapping="Wrap" />
+                <TextBlock x:Name="RemainingText" Foreground="{StaticResource PhoneMutedTextBrush}" TextWrapping="Wrap" Margin="0,14,0,0" Visibility="Collapsed" />
                 <Button x:Name="PurchaseButton" Content="VIEW ON WOOT" Style="{StaticResource PhoneButtonStyle}" Click="PurchaseButton_Click" HorizontalAlignment="Left" Margin="0,20,0,0" />
                 <TextBlock x:Name="StatusText" Foreground="{StaticResource PhoneMutedTextBrush}" TextWrapping="Wrap" Margin="0,12,0,0" />
             </StackPanel>
