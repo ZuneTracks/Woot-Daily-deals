@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.3.1 - Refresh within the request limit
 
 - Stopped the background refresh from overrunning Woot's daily request limit.
   Every 15 minutes the app refreshed *all* loaded categories at once, so once a
@@ -19,6 +19,7 @@
   ticking on the settings and deal details pages, spending requests on a list
   that was not on screen. It now stops on navigating away and resumes, with a
   staleness check, on returning.
+- Updated the package version to 1.3.1.0.
 
 ## v1.3.0 - Deal detail fixes
 
