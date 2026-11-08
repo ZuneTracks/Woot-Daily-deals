@@ -21,6 +21,10 @@
 - Reported a failed refresh against the saved deals rather than discarding them.
   An unreachable Woot now reads "Can't reach Woot. These are the deals saved two
   hours ago." instead of an HTTP error with an empty list behind it.
+- Fixed the status line running off the edge of the screen. Eight of the eleven
+  categories were missing text wrapping, so anything longer than one line was cut
+  off mid-word: the Woot-Off explanation ended at "Woot-Offs are occasio". All
+  eleven now share one style, so a category cannot drift out of step again.
 - Updated the package version to 1.4.0.0.
 
 ## v1.3.2 - Filter by subcategory
