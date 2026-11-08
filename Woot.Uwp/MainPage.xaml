@@ -80,7 +80,7 @@
                       SelectionChanged="SortSelector_SelectionChanged"
                       Foreground="{StaticResource PhonePrimaryTextBrush}" Background="{StaticResource PhoneCardBrush}" />
         </Grid>
-        <ComboBox x:Name="SubcategorySelector" Grid.Row="3" Margin="16,0,16,6" HorizontalAlignment="Stretch" Visibility="Collapsed"
+        <ComboBox x:Name="SubcategorySelector" Grid.Row="3" Margin="16,0,16,6" HorizontalAlignment="Stretch"
                   SelectionChanged="SubcategorySelector_SelectionChanged"
                   Foreground="{StaticResource PhonePrimaryTextBrush}" Background="{StaticResource PhoneCardBrush}" />
         <Pivot x:Name="FeedPivot" Grid.Row="4" SelectionChanged="FeedPivot_SelectionChanged">

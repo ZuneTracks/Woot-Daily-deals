@@ -109,9 +109,11 @@ namespace Woot.Uwp
         }
 
         /// <summary>
-        /// Rebuilds the subcategory choices for the selected feed. The selector stays
-        /// hidden for feeds Woot returns no subcategories for, so it never shows up as
-        /// an empty control.
+        /// Rebuilds the subcategory choices for the selected feed. The selector is
+        /// always visible and always offers "All subcategories", even before a feed
+        /// has loaded or for a feed that turns out to have none. Showing and hiding it
+        /// resized the row underneath it and shifted the whole pivot every time the
+        /// user moved to a category that had not loaded yet.
         /// </summary>
         private void SyncSubcategorySelector()
         {
@@ -128,7 +130,6 @@ namespace Woot.Uwp
 
             var selected = WootDealCategories.IndexOf(feed.Subcategories, feed.Subcategory);
             SubcategorySelector.SelectedIndex = selected < 0 ? 0 : selected + 1;
-            SubcategorySelector.Visibility = feed.Subcategories.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             suppressSubcategorySelection = false;
         }
 
