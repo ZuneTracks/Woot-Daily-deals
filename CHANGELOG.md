@@ -2,6 +2,24 @@
 
 ## v1.4.0 - Offline deals and a tile that keeps up
 
+- Fixed the live tile never showing the featured deals. The tile was drawn with
+  two of the old Windows 8 templates, and each of those renders only its first
+  line of text, which was the last deal you opened. The featured deals and the
+  app's own heading were written into the tile and then silently thrown away by
+  the template, at every tile size. That made the background refresh look dead:
+  it had nothing visible to change, so the tile only ever moved when you tapped
+  a deal. The tile is now built from the adaptive templates, with its own layout
+  for the small, wide and large sizes, so the featured deal, its price and the
+  second deal all actually appear.
+
+- Added a LIVE TILE section to Settings showing whether the hourly refresh is
+  scheduled, when it last ran, what it found, and whether Windows is currently
+  accepting tile updates at all - a tile update is accepted and then dropped
+  when notifications are switched off for the app, which looks identical to a
+  background task that never ran. There is an UPDATE TILE NOW button that runs
+  exactly the same code as the background task, so a tile that changes on demand
+  but not on its own points at scheduling rather than the tile itself.
+
 - Finished the job on the feed-load freeze. Handing the deals to the list was
   still clearing it and adding them back one at a time, so a category with
   three hundred deals raised three hundred and one separate change

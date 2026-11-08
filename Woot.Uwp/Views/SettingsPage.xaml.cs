@@ -5,6 +5,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Navigation;
+using Woot.Uwp.Services;
 
 namespace Woot.Uwp.Views
 {
@@ -23,6 +24,22 @@ namespace Woot.Uwp.Views
             DarkThemeSwitch.IsOn = theme == null || (theme is bool && (bool)theme);
             RootGrid.RequestedTheme = DarkThemeSwitch.IsOn ? ElementTheme.Dark : ElementTheme.Light;
             App.ApplyTheme();
+            TileStatusText.Text = WootBackgroundService.DescribeStatus();
+        }
+
+        /// <summary>
+        /// Runs exactly what the background task runs, so a tile that refuses to
+        /// change here is a tile problem and one that changes here but not on its
+        /// own is a scheduling problem.
+        /// </summary>
+        private async void UpdateTileButton_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateTileButton.IsEnabled = false;
+            UpdateTileButton.Content = "UPDATING...";
+            await WootBackgroundService.RunTileRefreshAsync();
+            UpdateTileButton.Content = "UPDATE TILE NOW";
+            UpdateTileButton.IsEnabled = true;
+            TileStatusText.Text = WootBackgroundService.DescribeStatus();
         }
 
         private void StartCategorySelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
