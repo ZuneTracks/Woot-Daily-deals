@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.3.2 - Filter by subcategory
 
 - Fixed the Woot-Off category, which never returned anything. The app requested
   `/feed/Woot-Off`, but the endpoint only answers to the unhyphenated `Wootoff`
@@ -31,6 +31,7 @@
   the displayed collection rather than the feed as Woot returned it, so once
   filtering existed, narrowing the Featured category would have shrunk the tile
   to the filtered deals.
+- Updated the package version to 1.3.2.0.
 
 ## v1.3.1 - Refresh within the request limit
 
