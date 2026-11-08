@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Windows.UI.Xaml;
 
 namespace Woot.Uwp.Models
@@ -19,6 +20,12 @@ namespace Woot.Uwp.Models
         public DateTimeOffset? StartDate { get; set; }
         public DateTimeOffset? EndDate { get; set; }
         public int FeedOrder { get; set; }
+
+        /// <summary>
+        /// The raw category entries Woot returned, mixing site names with
+        /// subcategory paths. See <see cref="WootDealCategories"/>.
+        /// </summary>
+        public IList<string> Categories { get; set; }
 
         public double? DiscountPercent
         {

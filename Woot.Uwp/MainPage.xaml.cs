@@ -27,6 +27,8 @@ namespace Woot.Uwp
         private readonly DispatcherTimer refreshTimer;
         private bool hasLoadedOnce;
         private bool suppressSortSelection;
+        private bool suppressSubcategorySelection;
+        private const string AllSubcategoriesLabel = "All subcategories";
         private readonly string[] feedNames = { "Featured", "All", "Clearance", "Computers", "Electronics", "Home", "Gourmet", "Shirts", "Sports", "Tools", "Woot-Off" };
 
         public ObservableCollection<WootFeedViewModel> Feeds { get; private set; }
@@ -47,6 +49,7 @@ namespace Woot.Uwp
             FeedPivot.SelectedIndex = categoryIndex >= 0 && categoryIndex < feedNames.Length ? categoryIndex : 0;
             UpdateCategoryHeaders(FeedPivot.SelectedIndex);
             SyncSortSelector();
+            SyncSubcategorySelector();
             refreshTimer = new DispatcherTimer { Interval = FeedRefreshInterval };
             refreshTimer.Tick += RefreshTimer_Tick;
         }
@@ -70,6 +73,7 @@ namespace Woot.Uwp
             hasLoadedOnce = true;
             UpdateCategoryHeaders(FeedPivot.SelectedIndex);
             SyncSortSelector();
+            SyncSubcategorySelector();
             refreshTimer.Start();
             _ = LoadFeedIfStaleAsync(FeedPivot.SelectedIndex < 0 ? 0 : FeedPivot.SelectedIndex);
         }
@@ -88,6 +92,7 @@ namespace Woot.Uwp
                 return;
             UpdateCategoryHeaders(FeedPivot.SelectedIndex);
             SyncSortSelector();
+            SyncSubcategorySelector();
             if (!hasLoadedOnce)
                 return;
             await LoadFeedIfStaleAsync(FeedPivot.SelectedIndex);
@@ -101,6 +106,43 @@ namespace Woot.Uwp
             suppressSortSelection = true;
             SortSelector.SelectedIndex = WootDealSortOption.IndexOf(Feeds[index].Sort);
             suppressSortSelection = false;
+        }
+
+        /// <summary>
+        /// Rebuilds the subcategory choices for the selected feed. The selector stays
+        /// hidden for feeds Woot returns no subcategories for, so it never shows up as
+        /// an empty control.
+        /// </summary>
+        private void SyncSubcategorySelector()
+        {
+            var index = FeedPivot.SelectedIndex;
+            if (index < 0 || index >= Feeds.Count)
+                return;
+            var feed = Feeds[index];
+
+            suppressSubcategorySelection = true;
+            var choices = new List<string> { AllSubcategoriesLabel };
+            foreach (var name in feed.Subcategories)
+                choices.Add(name);
+            SubcategorySelector.ItemsSource = choices;
+
+            var selected = WootDealCategories.IndexOf(feed.Subcategories, feed.Subcategory);
+            SubcategorySelector.SelectedIndex = selected < 0 ? 0 : selected + 1;
+            SubcategorySelector.Visibility = feed.Subcategories.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            suppressSubcategorySelection = false;
+        }
+
+        private void SubcategorySelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (suppressSubcategorySelection)
+                return;
+            var index = FeedPivot.SelectedIndex;
+            if (index < 0 || index >= Feeds.Count)
+                return;
+            var feed = Feeds[index];
+            var selected = SubcategorySelector.SelectedItem as string;
+            feed.Subcategory = selected == AllSubcategoriesLabel ? null : selected;
+            UpdateFeedStatus(feed);
         }
 
         private void SortSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -118,20 +160,34 @@ namespace Woot.Uwp
         }
 
         /// <summary>
-        /// Keeps the feed caption in step with the loaded deal count and the active sort.
+        /// Keeps the feed caption in step with the deal count, the active filter and
+        /// the active sort.
         /// </summary>
         private static void UpdateFeedStatus(WootFeedViewModel feed)
         {
             if (!feed.IsLoaded)
                 return;
-            var count = feed.FeedOrderDeals.Count;
-            if (count == 0)
+            var total = feed.FeedOrderDeals.Count;
+            if (total == 0)
             {
-                feed.StatusText = "No deals were returned.";
+                // Woot answers for every category it documents, but some of them are
+                // routinely empty: a Woot-Off only runs occasionally, and Gourmet has
+                // no deals of its own any more.
+                feed.StatusText = string.Equals(feed.Name, "Woot-Off", StringComparison.OrdinalIgnoreCase)
+                    ? "No Woot-Off is running right now. Woot-Offs are occasional events, so this list is usually empty."
+                    : "Woot is not listing any " + feed.Name + " deals right now.";
                 return;
             }
-            var status = count + " deals";
-            if (feed.Sort != WootDealSort.Default)
+
+            string status;
+            if (feed.IsFiltered && feed.VisibleCount == 0)
+                status = "No " + feed.Subcategory.ToLowerInvariant() + " deals in this category right now.";
+            else if (feed.IsFiltered)
+                status = feed.VisibleCount + " of " + total + " deals - " + feed.Subcategory.ToLowerInvariant();
+            else
+                status = total + " deals";
+
+            if (feed.Sort != WootDealSort.Default && feed.VisibleCount > 0)
             {
                 status += " - " + WootDealSortOption.All[WootDealSortOption.IndexOf(feed.Sort)].Label.ToLowerInvariant();
                 if (!feed.IsSortSupported)
@@ -227,6 +283,8 @@ namespace Woot.Uwp
                 feed.SetDeals(deals);
                 feed.IsLoaded = true;
                 feed.LastLoaded = DateTimeOffset.UtcNow;
+                if (index == FeedPivot.SelectedIndex)
+                    SyncSubcategorySelector();
                 UpdateFeedStatus(feed);
                 if (index == 0)
                     WootTileService.Update(null, feed.FeedOrderDeals);
@@ -265,7 +323,7 @@ namespace Woot.Uwp
             var deal = border == null ? null : border.DataContext as WootDeal;
             if (deal == null)
                 return;
-            WootTileService.Update(deal, Feeds.Count == 0 ? null : Feeds[0].Deals);
+            WootTileService.Update(deal, Feeds.Count == 0 ? null : Feeds[0].FeedOrderDeals);
             Frame.Navigate(typeof(OfferDetailsPage), deal);
         }
 

@@ -36,6 +36,7 @@
             <RowDefinition Height="64" />
             <RowDefinition Height="4" />
             <RowDefinition Height="64" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Border Grid.Row="0" Background="{StaticResource PhoneHeaderBrush}">
@@ -65,7 +66,10 @@
                       SelectionChanged="SortSelector_SelectionChanged"
                       Foreground="{StaticResource PhonePrimaryTextBrush}" Background="{StaticResource PhoneCardBrush}" />
         </Grid>
-        <Pivot x:Name="FeedPivot" Grid.Row="3" SelectionChanged="FeedPivot_SelectionChanged">
+        <ComboBox x:Name="SubcategorySelector" Grid.Row="3" Margin="16,0,16,6" HorizontalAlignment="Stretch" Visibility="Collapsed"
+                  SelectionChanged="SubcategorySelector_SelectionChanged"
+                  Foreground="{StaticResource PhonePrimaryTextBrush}" Background="{StaticResource PhoneCardBrush}" />
+        <Pivot x:Name="FeedPivot" Grid.Row="4" SelectionChanged="FeedPivot_SelectionChanged">
             <PivotItem Header="FEATURED"><ListView Margin="16" ItemsSource="{Binding Feeds[0].Deals}" ItemTemplate="{StaticResource DealTemplate}" ItemContainerStyle="{StaticResource PhoneListItemStyle}"><ListView.Header><TextBlock Text="{Binding Feeds[0].StatusText}" Foreground="{StaticResource PhoneMutedTextBrush}" TextWrapping="Wrap" Margin="0,0,0,10" /></ListView.Header></ListView></PivotItem>
             <PivotItem Header="ALL"><ListView Margin="16" ItemsSource="{Binding Feeds[1].Deals}" ItemTemplate="{StaticResource DealTemplate}" ItemContainerStyle="{StaticResource PhoneListItemStyle}"><ListView.Header><TextBlock Text="{Binding Feeds[1].StatusText}" Foreground="{StaticResource PhoneMutedTextBrush}" TextWrapping="Wrap" Margin="0,0,0,10" /></ListView.Header></ListView></PivotItem>
             <PivotItem Header="CLEARANCE"><ListView Margin="16" ItemsSource="{Binding Feeds[2].Deals}" ItemTemplate="{StaticResource DealTemplate}" ItemContainerStyle="{StaticResource PhoneListItemStyle}"><ListView.Header><TextBlock Text="{Binding Feeds[2].StatusText}" Foreground="{StaticResource PhoneMutedTextBrush}" TextWrapping="Wrap" Margin="0,0,0,10" /></ListView.Header></ListView></PivotItem>
