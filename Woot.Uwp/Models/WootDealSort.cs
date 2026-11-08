@@ -13,7 +13,9 @@ namespace Woot.Uwp.Models
         BiggestDiscount = 3,
         Newest = 4,
         EndingSoonest = 5,
-        MostPopular = 6,
+        // 6 was MostPopular, removed because the feed carries no remaining-quantity
+        // field. The gap is deliberate: these values are persisted per category, so
+        // renumbering would silently change a saved sort.
         AvailableFirst = 7,
         FeaturedFirst = 8,
         TitleAscending = 9,
@@ -31,7 +33,6 @@ namespace Woot.Uwp.Models
                 new WootDealSortOption(WootDealSort.BiggestDiscount, "Biggest discount"),
                 new WootDealSortOption(WootDealSort.Newest, "Newest first"),
                 new WootDealSortOption(WootDealSort.EndingSoonest, "Ending soonest"),
-                new WootDealSortOption(WootDealSort.MostPopular, "Most popular"),
                 new WootDealSortOption(WootDealSort.AvailableFirst, "Available first"),
                 new WootDealSortOption(WootDealSort.FeaturedFirst, "Featured first"),
                 new WootDealSortOption(WootDealSort.TitleAscending, "Title: A to Z"),
@@ -100,10 +101,6 @@ namespace Woot.Uwp.Models
                     return source.OrderBy(deal => deal.EndDate.HasValue ? 0 : 1)
                         .ThenBy(deal => deal.EndDate ?? DateTimeOffset.MaxValue)
                         .ThenBy(deal => deal.FeedOrder);
-                case WootDealSort.MostPopular:
-                    return source.OrderBy(deal => deal.SoldOutPercentage.HasValue ? 0 : 1)
-                        .ThenByDescending(deal => deal.SoldOutPercentage ?? 0d)
-                        .ThenBy(deal => deal.FeedOrder);
                 case WootDealSort.AvailableFirst:
                     return source.OrderBy(deal => deal.IsSoldOut ? 1 : 0)
                         .ThenBy(deal => deal.FeedOrder);
@@ -142,8 +139,6 @@ namespace Woot.Uwp.Models
                     return source.Any(deal => deal.StartDate.HasValue);
                 case WootDealSort.EndingSoonest:
                     return source.Any(deal => deal.EndDate.HasValue);
-                case WootDealSort.MostPopular:
-                    return source.Any(deal => deal.SoldOutPercentage.HasValue);
                 default:
                     return true;
             }

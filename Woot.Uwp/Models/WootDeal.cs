@@ -18,7 +18,6 @@ namespace Woot.Uwp.Models
         public double? ListPriceValue { get; set; }
         public DateTimeOffset? StartDate { get; set; }
         public DateTimeOffset? EndDate { get; set; }
-        public double? SoldOutPercentage { get; set; }
         public int FeedOrder { get; set; }
 
         public double? DiscountPercent

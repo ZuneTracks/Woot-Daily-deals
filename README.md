@@ -19,8 +19,8 @@ is not rendered in a WebView.
 
 The toolbar sort selector reorders the deals in the current category. Available
 orders are default feed order, price low to high, price high to low, biggest
-discount, newest first, ending soonest, most popular, available first, featured
-first, title A to Z, and title Z to A.
+discount, newest first, ending soonest, available first, featured first, title
+A to Z, and title Z to A.
 
 Each category keeps its own sort, saved locally under `WootSort_<FeedName>` and
 restored on the next launch. Sorting runs on the device against the deals

@@ -12,7 +12,7 @@ namespace Woot.Uwp.Services
     public sealed class WootApiClient
     {
         private const string BaseUrl = "https://developer.woot.com/feed/";
-        private const string OffersUrl = "https://developer.woot.com/getoffers";
+        private const string OfferUrl = "https://developer.woot.com/offers/";
         private readonly HttpClient client = new HttpClient();
 
         public async Task<IList<WootDeal>> GetFeedAsync(string feedName, string apiKey, CancellationToken cancellationToken)
@@ -78,7 +78,6 @@ namespace Woot.Uwp.Services
                     ListPriceValue = ReadPrice(obj, "ListPrice", "listPrice", "OriginalPrice", "originalPrice"),
                     StartDate = ReadDate(obj, "StartDate", "startDate"),
                     EndDate = ReadDate(obj, "EndDate", "endDate"),
-                    SoldOutPercentage = ReadNumber(obj, "SoldOutPercentage", "soldOutPercentage", "PercentageRemaining", "percentageRemaining"),
                     ImageUrl = ReadString(obj, "Photo", "photo", "Image", "image", "ImageUrl", "imageUrl"),
                     OfferUrl = ReadString(obj, "Url", "url", "SaleUrl", "saleUrl"),
                     IsSoldOut = ReadBool(obj, "IsSoldOut", "isSoldOut", "SoldOut", "soldOut"),
@@ -96,11 +95,8 @@ namespace Woot.Uwp.Services
             if (string.IsNullOrWhiteSpace(apiKey))
                 throw new InvalidOperationException("Deal details are unavailable right now. Please try again later.");
 
-            var ids = new JsonArray();
-            ids.Add(JsonValue.CreateStringValue(offerId));
-            using (var request = new HttpRequestMessage(HttpMethod.Post, OffersUrl))
+            using (var request = new HttpRequestMessage(HttpMethod.Get, OfferUrl + Uri.EscapeDataString(offerId)))
             {
-                request.Content = new StringContent(ids.Stringify(), System.Text.Encoding.UTF8, "application/json");
                 request.Headers.Add("x-api-key", apiKey.Trim());
                 request.Headers.Add("Accept", "application/json");
                 using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken))
@@ -113,15 +109,33 @@ namespace Woot.Uwp.Services
             }
         }
 
+        /// <summary>
+        /// Reads an offer payload. GET /offers/{id} returns a bare object; the older
+        /// POST /getoffers returned a single-element array, so both shapes are accepted.
+        /// </summary>
         private static WootOfferDetails ParseOfferDetails(string json)
         {
             JsonValue root;
-            if (!JsonValue.TryParse(json, out root) || root.ValueType != JsonValueType.Array)
-                throw new FormatException("The Woot detail response was not a valid offer list.");
-            var items = root.GetArray();
-            if (items.Count == 0 || items[0].ValueType != JsonValueType.Object)
-                throw new FormatException("Woot returned no detail data for this offer.");
-            var obj = items[0].GetObject();
+            if (!JsonValue.TryParse(json, out root))
+                throw new FormatException("The Woot detail response was not valid JSON.");
+
+            JsonObject obj;
+            if (root.ValueType == JsonValueType.Object)
+            {
+                obj = root.GetObject();
+            }
+            else if (root.ValueType == JsonValueType.Array)
+            {
+                var items = root.GetArray();
+                if (items.Count == 0 || items[0].ValueType != JsonValueType.Object)
+                    throw new FormatException("Woot returned no detail data for this offer.");
+                obj = items[0].GetObject();
+            }
+            else
+            {
+                throw new FormatException("The Woot detail response was not a valid offer.");
+            }
+
             return new WootOfferDetails
             {
                 Title = ReadString(obj, "Title", "title") ?? ReadString(obj, "FullTitle", "fullTitle") ?? "Untitled deal",
@@ -133,9 +147,35 @@ namespace Woot.Uwp.Services
                 Teaser = PlainText(ReadString(obj, "Teaser", "teaser")),
                 ImageUrl = ReadFirstPhotoUrl(obj),
                 OfferUrl = ReadString(obj, "Url", "url"),
-                SalePrice = FormatPrice(obj, "SalePrice", "salePrice"),
-                ListPrice = FormatPrice(obj, "ListPrice", "listPrice")
+                SalePrice = ReadOfferPrice(obj, "SalePrice", "salePrice"),
+                ListPrice = ReadOfferPrice(obj, "ListPrice", "listPrice"),
+                PercentageRemaining = ReadNumber(obj, "PercentageRemainingBlurred", "percentageRemainingBlurred")
             };
+        }
+
+        /// <summary>
+        /// An offer carries its prices on its Items entries rather than at the root,
+        /// so fall back to the first item that has one.
+        /// </summary>
+        private static string ReadOfferPrice(JsonObject obj, params string[] names)
+        {
+            var price = FormatPrice(obj, names);
+            if (!string.IsNullOrEmpty(price))
+                return price;
+
+            IJsonValue value;
+            if (obj.TryGetValue("Items", out value) && value.ValueType == JsonValueType.Array)
+            {
+                foreach (var item in value.GetArray())
+                {
+                    if (item.ValueType != JsonValueType.Object)
+                        continue;
+                    price = FormatPrice(item.GetObject(), names);
+                    if (!string.IsNullOrEmpty(price))
+                        return price;
+                }
+            }
+            return null;
         }
 
         private static string ReadFirstPhotoUrl(JsonObject obj)

@@ -13,5 +13,11 @@ namespace Woot.Uwp.Models
         public string OfferUrl { get; set; }
         public string SalePrice { get; set; }
         public string ListPrice { get; set; }
+
+        /// <summary>
+        /// Woot's blurred remaining-stock estimate, 0-100. Present only on the
+        /// offer detail endpoints; the category feed never carries it.
+        /// </summary>
+        public double? PercentageRemaining { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading;
 using Windows.Storage;
@@ -49,6 +50,17 @@ namespace Woot.Uwp.Views
                 SalePriceText.Text = details.SalePrice ?? string.Empty;
                 ListPriceText.Text = details.ListPrice ?? string.Empty;
                 ContentText.Text = FirstContent(details) ?? string.Empty;
+                if (details.PercentageRemaining.HasValue)
+                {
+                    RemainingText.Text = "Woot estimates about "
+                        + Math.Round(details.PercentageRemaining.Value).ToString(CultureInfo.CurrentCulture)
+                        + "% of stock remaining.";
+                    RemainingText.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    RemainingText.Visibility = Visibility.Collapsed;
+                }
                 PurchaseButton.Visibility = string.IsNullOrEmpty(details.OfferUrl) ? Visibility.Collapsed : Visibility.Visible;
                 if (!string.IsNullOrEmpty(details.ImageUrl))
                 {

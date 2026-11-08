@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+- Removed the "Most popular" sort added in v1.2.0. It never worked: it ranked on
+  a `SoldOutPercentage` field that the Woot feed does not return, so the value
+  was always empty and the list stayed in feed order while the status line
+  reported "(not available for this feed)". Woot only exposes remaining stock as
+  `PercentageRemainingBlurred` on the single-offer endpoints, never on a
+  category feed, so the sort cannot be supported without one extra request per
+  deal. The remaining ten sorts are unchanged and keep their stored values, so a
+  saved sort still restores correctly; a category that had "Most popular" saved
+  falls back to the default feed order.
+- Surfaced that remaining-stock estimate where it does exist. The deal details
+  page now shows "Woot estimates about N% of stock remaining." when the offer
+  reports it, and hides the line otherwise.
+- Fixed the deal details page showing no prices. `Offer` carries its prices on
+  its `Items` entries rather than at the root, but the parser only looked at the
+  root, so the sale and list price were always blank. It now reads the root
+  first and falls back to the first item that has a price.
+- Switched deal details from `POST /getoffers` to `GET /offers/{offerid}`. Woot
+  does not cache `POST` responses and counts every one against the daily request
+  limit, while the `GET` form returns the same offer and can be served from
+  cache. The parser accepts both the object returned by `GET` and the
+  single-element array returned by `POST`.
+
 ## v1.2.1 - About flyout improvements
 
 - Moved the installed build number directly below the app name in both About
