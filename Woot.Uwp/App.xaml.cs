@@ -5,6 +5,7 @@ using Windows.Storage;
 using Windows.UI;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml;
+using Woot.Uwp.Services;
 
 namespace Woot.Uwp
 {
@@ -50,6 +51,38 @@ namespace Woot.Uwp
                 rootFrame.Navigate(typeof(MainPage), e.Arguments);
 
             Window.Current.Activate();
+
+            // Registration is awaited by nobody: the tile refreshing is not worth
+            // delaying the first frame for.
+            var ignored = WootBackgroundService.RegisterAsync();
+        }
+
+        /// <summary>
+        /// The entry point for in-process background tasks. The tile refresh has no
+        /// entry point of its own, so the platform delivers it here.
+        /// </summary>
+        protected override async void OnBackgroundActivated(BackgroundActivatedEventArgs args)
+        {
+            base.OnBackgroundActivated(args);
+
+            // Without a deferral the task is considered finished the moment this
+            // method returns, which for async work is before it has done anything.
+            var deferral = args.TaskInstance.GetDeferral();
+            try
+            {
+                var task = args.TaskInstance.Task;
+                if (task != null && string.Equals(task.Name, WootBackgroundService.TileTaskName, StringComparison.Ordinal))
+                    await WootBackgroundService.RunTileRefreshAsync();
+            }
+            catch (Exception)
+            {
+                // An in-process background task that throws takes the whole app down
+                // with it. A tile that is briefly out of date is the better outcome.
+            }
+            finally
+            {
+                deferral.Complete();
+            }
         }
 
         private void OnSuspending(object sender, SuspendingEventArgs e)

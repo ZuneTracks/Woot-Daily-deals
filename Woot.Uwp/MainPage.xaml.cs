@@ -165,7 +165,7 @@ namespace Woot.Uwp
         /// </summary>
         private static void UpdateFeedStatus(WootFeedViewModel feed)
         {
-            if (!feed.IsLoaded)
+            if (!feed.IsLoaded && !feed.CachedAt.HasValue)
                 return;
             var total = feed.FeedOrderDeals.Count;
             if (total == 0)
@@ -193,6 +193,12 @@ namespace Woot.Uwp
                 if (!feed.IsSortSupported)
                     status += " (not available for this feed)";
             }
+
+            // These deals came off the disk, not from Woot, so say so rather than let
+            // them pass for current.
+            if (feed.CachedAt.HasValue)
+                status += " - saved " + WootFeedCache.DescribeAge(feed.CachedAt.Value);
+
             feed.StatusText = status;
         }
 
@@ -258,6 +264,41 @@ namespace Woot.Uwp
             await LoadFeedAsync(index, Feeds[index].IsStale(FeedRefreshInterval));
         }
 
+        /// <summary>
+        /// Puts the deals saved from a previous session on screen so a cold start, or
+        /// a phone with no signal, has something to show. They are explicitly not
+        /// marked loaded, so the feed is still fetched and replaced the moment Woot
+        /// answers.
+        /// </summary>
+        private static async Task ShowCachedDealsAsync(WootFeedViewModel feed)
+        {
+            if (feed.IsLoaded || feed.FeedOrderDeals.Count > 0)
+                return;
+
+            var cached = await WootFeedCache.LoadAsync(feed.Name);
+
+            // The request may well have finished while the file was being read, in
+            // which case the live deals are already on screen and must not be
+            // replaced by older ones.
+            if (cached == null || cached.Deals.Count == 0 || feed.IsLoaded || feed.FeedOrderDeals.Count > 0)
+                return;
+
+            feed.SetDeals(cached.Deals);
+            feed.CachedAt = cached.SavedUtc;
+        }
+
+        /// <summary>
+        /// What to say when a feed will not load. Cached deals are far more use than
+        /// an error, so when there are some the failure is reported as staleness.
+        /// </summary>
+        private static string DescribeFailure(WootFeedViewModel feed, string error)
+        {
+            if (!feed.CachedAt.HasValue)
+                return error;
+            return "Can't reach Woot. These are the deals saved " +
+                WootFeedCache.DescribeAge(feed.CachedAt.Value) + ".";
+        }
+
         private async Task LoadFeedAsync(int index, bool forceRefresh)
         {
             if (index < 0 || index >= Feeds.Count || loadingFeeds.Contains(index))
@@ -277,10 +318,22 @@ namespace Woot.Uwp
             using (var loadCancellation = new CancellationTokenSource())
             {
             feed.StatusText = "Loading " + feed.Name + "...";
+
+            // Something to look at while the request is in flight, and the only thing
+            // there will be if it never arrives.
+            await ShowCachedDealsAsync(feed);
+            if (feed.CachedAt.HasValue)
+            {
+                if (index == FeedPivot.SelectedIndex)
+                    SyncSubcategorySelector();
+                feed.StatusText = "Deals saved " + WootFeedCache.DescribeAge(feed.CachedAt.Value) + ". Checking Woot...";
+            }
+
             try
             {
                 var deals = await apiClient.GetFeedAsync(feed.Name, key, loadCancellation.Token);
                 feed.SetDeals(deals);
+                feed.CachedAt = null;
                 feed.IsLoaded = true;
                 feed.LastLoaded = DateTimeOffset.UtcNow;
                 if (index == FeedPivot.SelectedIndex)
@@ -288,6 +341,7 @@ namespace Woot.Uwp
                 UpdateFeedStatus(feed);
                 if (index == 0)
                     WootTileService.Update(null, feed.FeedOrderDeals);
+                await WootFeedCache.SaveAsync(feed.Name, deals);
             }
             catch (OperationCanceledException)
             {
@@ -295,11 +349,11 @@ namespace Woot.Uwp
             }
             catch (HttpRequestException ex)
             {
-                feed.StatusText = "Unable to load " + feed.Name + ": " + ex.Message;
+                feed.StatusText = DescribeFailure(feed, "Unable to load " + feed.Name + ": " + ex.Message);
             }
             catch (FormatException ex)
             {
-                feed.StatusText = "Unable to read " + feed.Name + ": " + ex.Message;
+                feed.StatusText = DescribeFailure(feed, "Unable to read " + feed.Name + ": " + ex.Message);
             }
             catch (InvalidOperationException ex)
             {
