@@ -58,6 +58,25 @@ Woot-Off is an occasional event, so that category has nothing in it most of the
 time, and Gourmet no longer carries deals of its own. Both report why in the
 status line instead of simply showing an empty list.
 
+## Offline and background behaviour
+
+The deals returned for each category are saved locally and shown straight away on
+the next launch, so the app opens on content rather than an empty list while the
+network answers, and a phone with no signal still shows the last deals it saw.
+Saved deals are always labelled with their age in the status line and are
+replaced as soon as Woot responds. A refresh that fails keeps them on screen and
+says so instead of reporting an error over an empty list.
+
+The live tile is refreshed by a timer-triggered background task roughly every
+thirty minutes, so it stays current while the app is closed. It runs in the app's
+own process, which needs no separate component and no manifest declaration, and
+it only wakes when a connection is available. One request every half hour is 48 a
+day, well inside Woot's limit.
+
+Deal photos are decoded at the size they are drawn rather than at Woot's full
+resolution, which is what makes eleven categories of images affordable on a phone
+with 512 MB of memory.
+
 ## Settings
 
 Settings stores the preferred startup category and appearance locally with

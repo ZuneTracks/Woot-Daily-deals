@@ -69,7 +69,13 @@ namespace Woot.Uwp.Views
                     {
                         try
                         {
-                            OfferImage.Source = new BitmapImage(imageUri);
+                            // The image is drawn 220 pixels tall, so there is no reason to
+                            // decode Woot's full-size photo into memory on a phone.
+                            OfferImage.Source = new BitmapImage(imageUri)
+                            {
+                                DecodePixelType = DecodePixelType.Logical,
+                                DecodePixelHeight = 220
+                            };
                         }
                         catch (ArgumentException)
                         {

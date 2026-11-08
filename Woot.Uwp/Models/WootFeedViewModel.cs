@@ -132,6 +132,13 @@ namespace Woot.Uwp.Models
         public bool IsLoaded { get; set; }
 
         /// <summary>
+        /// When the deals on show were saved to disk, or null when they came from
+        /// Woot during this session. Set only while a cached list is standing in for
+        /// a feed that has not loaded, so the caller can say how old it is.
+        /// </summary>
+        public DateTimeOffset? CachedAt { get; set; }
+
+        /// <summary>
         /// When these deals were last fetched, or null if they never have been.
         /// </summary>
         public DateTimeOffset? LastLoaded { get; set; }

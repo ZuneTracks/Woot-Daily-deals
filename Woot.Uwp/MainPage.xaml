@@ -11,7 +11,14 @@
                         <ColumnDefinition Width="112" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Image Source="{Binding ImageUrl}" Width="102" Height="102" Stretch="UniformToFill" ImageFailed="DealImage_ImageFailed" />
+                    <Image Width="102" Height="102" Stretch="UniformToFill" ImageFailed="DealImage_ImageFailed">
+                        <Image.Source>
+                            <!-- Woot serves full-size product photos. Decoding one per deal at
+                                 its native size exhausts memory on a 512 MB phone, so the
+                                 bitmap is decoded at the size it is actually drawn. -->
+                            <BitmapImage UriSource="{Binding ImageUri}" DecodePixelType="Logical" DecodePixelWidth="102" />
+                        </Image.Source>
+                    </Image>
                     <StackPanel Grid.Column="1" Margin="12,0,0,0">
                         <TextBlock Text="{Binding Title}" FontSize="17" Foreground="{StaticResource PhonePrimaryTextBrush}" TextWrapping="Wrap" MaxLines="3" />
                         <TextBlock Text="{Binding Subtitle}" Foreground="{StaticResource PhoneMutedTextBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />

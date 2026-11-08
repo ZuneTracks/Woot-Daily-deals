@@ -12,6 +12,21 @@ namespace Woot.Uwp.Models
         public string SalePrice { get; set; }
         public string ListPrice { get; set; }
         public string ImageUrl { get; set; }
+
+        /// <summary>
+        /// <see cref="ImageUrl"/> as a Uri, so the list can bind a BitmapImage that
+        /// limits its decode size. Null when Woot gave no usable address, which
+        /// simply leaves the image blank.
+        /// </summary>
+        public Uri ImageUri
+        {
+            get
+            {
+                Uri parsed;
+                return Uri.TryCreate(ImageUrl, UriKind.Absolute, out parsed) ? parsed : null;
+            }
+        }
+
         public string OfferUrl { get; set; }
         public bool IsSoldOut { get; set; }
         public bool IsFeatured { get; set; }

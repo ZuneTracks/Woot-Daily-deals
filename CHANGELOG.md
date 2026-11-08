@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.4.0 - Offline deals and a tile that keeps up
+
+- Stopped decoding deal photos at full size. Woot serves large product images, and
+  each one was decoded into memory at its native resolution to be drawn into a
+  102-pixel thumbnail. Across eleven categories that was enough to get the app
+  terminated on a 512 MB phone. Images are now decoded at the size they are drawn,
+  in both the deal list and the offer page.
+- Added a background refresh for the live tile. Nothing updated the tile unless
+  the app happened to be open, so it showed whatever was current the last time it
+  ran. A timer-triggered task now refreshes the Featured feed about every thirty
+  minutes and updates the tile and the saved deals from it. It runs in-process, so
+  it needs no separate component, and it only wakes when there is a connection. At
+  48 requests a day it leaves the rest of Woot's 1000-request budget to the app.
+- Added an offline cache. The deals Woot returns are saved locally per category
+  and shown immediately on the next launch, so a cold start is no longer a blank
+  list while the network answers, and a phone with no signal shows the last deals
+  it saw instead of only an error. Saved deals are always labelled with their age
+  and are replaced as soon as Woot responds.
+- Reported a failed refresh against the saved deals rather than discarding them.
+  An unreachable Woot now reads "Can't reach Woot. These are the deals saved two
+  hours ago." instead of an HTTP error with an empty list behind it.
+- Updated the package version to 1.4.0.0.
+
 ## v1.3.2 - Filter by subcategory
 
 - Fixed the Woot-Off category, which never returned anything. The app requested
