@@ -2,6 +2,15 @@
 
 ## v1.4.0 - Offline deals and a tile that keeps up
 
+- Stopped a feed load from freezing the app. The network call was already
+  asynchronous, but the work either side of it was not: reading Woot's response
+  into deals, writing those deals to the cache, and reading the cache back all
+  ran on the UI thread. Each one walks every field of every deal across the
+  WinRT boundary, which is slow enough on a phone that the toolbar, the pivot
+  and the settings button all stopped responding until a load finished. That
+  work now happens on a background thread, so the app stays usable while deals
+  arrive.
+
 - Kept the subcategory selector on screen instead of showing and hiding it. It
   was collapsed for any category with no subcategories, which includes every
   category that has not loaded yet, so moving to a new category removed the

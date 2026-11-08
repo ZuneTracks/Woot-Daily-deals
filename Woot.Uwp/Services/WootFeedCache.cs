@@ -43,7 +43,9 @@ namespace Woot.Uwp.Services
             if (string.IsNullOrWhiteSpace(feedName) || deals == null)
                 return;
 
-            var text = Serialize(deals, DateTimeOffset.UtcNow);
+            // Writing the document costs about as much as reading one, and this runs
+            // after every successful load, so it stays off the UI thread as well.
+            var text = await Task.Run(() => Serialize(deals, DateTimeOffset.UtcNow));
             try
             {
                 var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
@@ -77,7 +79,7 @@ namespace Woot.Uwp.Services
                 return null;
             }
 
-            return Deserialize(text);
+            return await Task.Run(() => Deserialize(text));
         }
 
         private static string Serialize(IList<WootDeal> deals, DateTimeOffset savedUtc)
