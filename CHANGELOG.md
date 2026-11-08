@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.3.0 - Deal detail fixes
 
 - Removed the "Most popular" sort added in v1.2.0. It never worked: it ranked on
   a `SoldOutPercentage` field that the Woot feed does not return, so the value
@@ -23,6 +23,7 @@
   limit, while the `GET` form returns the same offer and can be served from
   cache. The parser accepts both the object returned by `GET` and the
   single-element array returned by `POST`.
+- Updated the package version to `1.3.0.0`.
 
 ## v1.2.1 - About flyout improvements
 
