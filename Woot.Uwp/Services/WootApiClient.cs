@@ -20,7 +20,7 @@ namespace Woot.Uwp.Services
             if (string.IsNullOrWhiteSpace(apiKey))
                 throw new InvalidOperationException("Deals are unavailable right now. Please try again later.");
 
-            var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + Uri.EscapeDataString(feedName));
+            var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + Uri.EscapeDataString(ApiFeedName(feedName)));
             request.Headers.Add("x-api-key", apiKey.Trim());
             request.Headers.Add("Accept", "application/json");
 
@@ -34,8 +34,19 @@ namespace Woot.Uwp.Services
             }
         }
 
-        private static IList<WootDeal> ParseDeals(string json)
+        /// <summary>
+        /// The feed name as Woot's endpoint spells it. The app shows "Woot-Off", but
+        /// the API only answers to the unhyphenated "Wootoff" and returns an error
+        /// for anything else.
+        /// </summary>
+        private static string ApiFeedName(string feedName)
         {
+            if (string.Equals(feedName, "Woot-Off", StringComparison.OrdinalIgnoreCase))
+                return "Wootoff";
+            return feedName;
+        }
+
+        private static IList<WootDeal> ParseDeals(string json)        {
             var deals = new List<WootDeal>();
             JsonValue root;
             if (!JsonValue.TryParse(json, out root))
@@ -82,6 +93,7 @@ namespace Woot.Uwp.Services
                     OfferUrl = ReadString(obj, "Url", "url", "SaleUrl", "saleUrl"),
                     IsSoldOut = ReadBool(obj, "IsSoldOut", "isSoldOut", "SoldOut", "soldOut"),
                     IsFeatured = ReadBool(obj, "IsFeatured", "isFeatured", "Featured", "featured"),
+                    Categories = ReadStringList(obj, "Categories", "categories"),
                     FeedOrder = feedOrder++
                 });
             }
@@ -236,8 +248,25 @@ namespace Woot.Uwp.Services
             return null;
         }
 
-        private static bool ReadBool(JsonObject obj, params string[] names)
+        private static IList<string> ReadStringList(JsonObject obj, params string[] names)
         {
+            var values = new List<string>();
+            foreach (var name in names)
+            {
+                IJsonValue value;
+                if (!obj.TryGetValue(name, out value) || value.ValueType != JsonValueType.Array)
+                    continue;
+                foreach (var entry in value.GetArray())
+                {
+                    if (entry.ValueType == JsonValueType.String)
+                        values.Add(entry.GetString());
+                }
+                break;
+            }
+            return values;
+        }
+
+        private static bool ReadBool(JsonObject obj, params string[] names)        {
             foreach (var name in names)
             {
                 IJsonValue value;

@@ -8,7 +8,10 @@ namespace Woot.Uwp.Models
     public sealed class WootFeedViewModel : INotifyPropertyChanged
     {
         private readonly List<WootDeal> feedOrderDeals = new List<WootDeal>();
+        private readonly List<WootDeal> visibleDeals = new List<WootDeal>();
+        private readonly List<string> subcategories = new List<string>();
         private WootDealSort sort = WootDealSort.Default;
+        private string subcategory;
 
         public WootFeedViewModel(string name)
         {
@@ -38,33 +41,80 @@ namespace Woot.Uwp.Models
                 if (sort == value)
                     return;
                 sort = value;
-                ApplySort();
+                ApplyFilterAndSort();
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Sort"));
             }
         }
+
+        /// <summary>
+        /// The subcategory the list is narrowed to, or null to show everything.
+        /// </summary>
+        public string Subcategory
+        {
+            get { return subcategory; }
+            set
+            {
+                var selected = string.IsNullOrWhiteSpace(value) ? null : value;
+                if (subcategory == selected)
+                    return;
+                subcategory = selected;
+                ApplyFilterAndSort();
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Subcategory"));
+            }
+        }
+
+        /// <summary>
+        /// The subcategories present in the loaded deals, as filter choices.
+        /// </summary>
+        public IList<string> Subcategories { get { return subcategories; } }
+
+        public bool IsFiltered { get { return subcategory != null; } }
+
+        /// <summary>
+        /// How many deals survive the current filter.
+        /// </summary>
+        public int VisibleCount { get { return visibleDeals.Count; } }
 
         public void SetDeals(IEnumerable<WootDeal> deals)
         {
             feedOrderDeals.Clear();
             if (deals != null)
                 feedOrderDeals.AddRange(deals);
-            ApplySort();
+
+            subcategories.Clear();
+            foreach (var name in WootDealCategories.DistinctSubcategories(feedOrderDeals))
+                subcategories.Add(name);
+
+            // Woot's deals turn over daily, so a subcategory chosen earlier may simply
+            // not exist in what just arrived. Clearing it keeps the user from staring
+            // at an empty list with no obvious cause.
+            if (subcategory != null && WootDealCategories.IndexOf(subcategories, subcategory) < 0)
+                subcategory = null;
+
+            ApplyFilterAndSort();
         }
 
-        public void ApplySort()
+        public void ApplyFilterAndSort()
         {
+            visibleDeals.Clear();
+            foreach (var deal in feedOrderDeals)
+            {
+                if (WootDealCategories.IsIn(deal, subcategory))
+                    visibleDeals.Add(deal);
+            }
+
             Deals.Clear();
-            foreach (var deal in WootDealSorter.Sort(feedOrderDeals, sort))
+            foreach (var deal in WootDealSorter.Sort(visibleDeals, sort))
                 Deals.Add(deal);
         }
 
         /// <summary>
-        /// False when the loaded deals carry none of the data the current sort needs,
+        /// False when the deals on show carry none of the data the current sort needs,
         /// so the caller can tell the user why the order looks unchanged.
         /// </summary>
         public bool IsSortSupported
         {
-            get { return WootDealSorter.IsSupportedBy(feedOrderDeals, sort); }
+            get { return WootDealSorter.IsSupportedBy(visibleDeals, sort); }
         }
 
         private string statusText;

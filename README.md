@@ -32,6 +32,32 @@ their original feed order. Woot does not populate every field on every feed, so
 when no deal in a category carries the required value the status line adds
 "(not available for this feed)" next to the sort name.
 
+## Filtering
+
+When Woot returns subcategories for the deals in a category, a selector appears
+beneath the toolbar listing them, and choosing one narrows the list. It is
+hidden for categories that have none, so it never shows up empty.
+
+Woot tags each deal with a flat list that mixes the sites it appears on with the
+paths beneath them, such as
+`[ "HOME", "TOOLS", "HOME/Lighting & Fans", "TOOLS/Lighting & Fans" ]`. The bare
+site names duplicate the category pivot, so only the entries carrying a path are
+offered, and the leading site is dropped from them: a deal cross-posted to
+several sites would otherwise appear as two choices meaning the same thing.
+
+Filtering runs on the device against the deals already loaded, so it costs no
+network request, and it applies before sorting. The filter is kept per category
+for as long as the app is running but is not saved between launches, because
+Woot's deals turn over daily. A filter that no longer matches anything after a
+refresh is cleared automatically rather than leaving an unexplained empty list.
+
+## Empty categories
+
+Woot answers for every category it documents, but some are routinely empty. A
+Woot-Off is an occasional event, so that category has nothing in it most of the
+time, and Gourmet no longer carries deals of its own. Both report why in the
+status line instead of simply showing an empty list.
+
 ## Settings
 
 Settings stores the preferred startup category and appearance locally with

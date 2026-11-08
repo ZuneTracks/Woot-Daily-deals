@@ -1,5 +1,37 @@
 # Changelog
 
+## Unreleased
+
+- Fixed the Woot-Off category, which never returned anything. The app requested
+  `/feed/Woot-Off`, but the endpoint only answers to the unhyphenated `Wootoff`
+  and rejects anything else, so the category could never load. The pivot still
+  reads "Woot-Off"; only the name sent to Woot changed. Note that a Woot-Off is
+  an occasional event, so the category is legitimately empty most of the time.
+- Added subcategory filtering. Woot tags every deal with entries such as
+  `TOOLS/Lighting & Fans`, which the app previously discarded. When a category's
+  deals carry subcategories, a selector now appears beneath the toolbar and
+  narrows the list to one of them. It stays hidden for categories that have
+  none. The data already arrives with the feed, so filtering costs no extra
+  request against the daily limit.
+- Offered only meaningful filter choices. The category list Woot returns mixes
+  site names with subcategory paths, for example
+  `[ "HOME", "TOOLS", "HOME/Lighting & Fans", "TOOLS/Lighting & Fans" ]`. The
+  bare site names duplicate the category pivot, so only path entries are
+  offered, and the leading site is dropped so a deal cross-posted to several
+  sites does not appear as two choices meaning the same thing.
+- Cleared a filter that no longer applies. Woot's deals turn over daily, so a
+  subcategory chosen earlier may be absent from the next refresh. Rather than
+  leaving an empty list with no obvious cause, the filter resets when what it
+  selected is gone. Filters are kept per category while the app runs but are not
+  saved between launches, for the same reason.
+- Explained empty categories instead of reporting "No deals were returned."
+  Gourmet no longer carries deals of its own and a Woot-Off only runs
+  occasionally, so both now say so in the status line.
+- Kept the live tile on the full Featured list. One of the two tile updates read
+  the displayed collection rather than the feed as Woot returned it, so once
+  filtering existed, narrowing the Featured category would have shrunk the tile
+  to the filtered deals.
+
 ## v1.3.1 - Refresh within the request limit
 
 - Stopped the background refresh from overrunning Woot's daily request limit.
