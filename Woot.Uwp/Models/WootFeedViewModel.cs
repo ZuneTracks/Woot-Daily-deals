@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -79,6 +80,22 @@ namespace Woot.Uwp.Models
             }
         }
         public bool IsLoaded { get; set; }
+
+        /// <summary>
+        /// When these deals were last fetched, or null if they never have been.
+        /// </summary>
+        public DateTimeOffset? LastLoaded { get; set; }
+
+        /// <summary>
+        /// True when the cached deals have aged past <paramref name="maxAge"/> and are
+        /// worth re-fetching. Woot allows 1000 requests a day, so a feed the user is
+        /// not looking at is left alone until it is shown again.
+        /// </summary>
+        public bool IsStale(TimeSpan maxAge)
+        {
+            return !LastLoaded.HasValue || DateTimeOffset.UtcNow - LastLoaded.Value >= maxAge;
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
     }
 }

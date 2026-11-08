@@ -49,7 +49,6 @@ namespace Woot.Uwp
             SyncSortSelector();
             refreshTimer = new DispatcherTimer { Interval = FeedRefreshInterval };
             refreshTimer.Tick += RefreshTimer_Tick;
-            refreshTimer.Start();
         }
 
         private static WootDealSort LoadSort(string feedName)
@@ -71,7 +70,16 @@ namespace Woot.Uwp
             hasLoadedOnce = true;
             UpdateCategoryHeaders(FeedPivot.SelectedIndex);
             SyncSortSelector();
-            _ = LoadSelectedFeedAsync(false);
+            refreshTimer.Start();
+            _ = LoadFeedIfStaleAsync(FeedPivot.SelectedIndex < 0 ? 0 : FeedPivot.SelectedIndex);
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            // Nothing on this page is visible once it is left, so stop spending
+            // requests on it until the user comes back.
+            refreshTimer.Stop();
+            base.OnNavigatedFrom(e);
         }
 
         private async void FeedPivot_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -82,7 +90,7 @@ namespace Woot.Uwp
             SyncSortSelector();
             if (!hasLoadedOnce)
                 return;
-            await LoadFeedAsync(FeedPivot.SelectedIndex, false);
+            await LoadFeedIfStaleAsync(FeedPivot.SelectedIndex);
         }
 
         private void SyncSortSelector()
@@ -172,11 +180,26 @@ namespace Woot.Uwp
 
         private async void RefreshTimer_Tick(object sender, object e)
         {
-            for (var index = 0; index < Feeds.Count; index++)
-            {
-                if (Feeds[index].IsLoaded)
-                    await LoadFeedAsync(index, true);
-            }
+            // Only the category on screen is refreshed. Refreshing every loaded feed
+            // cost one request per feed per tick, which across eleven categories at
+            // four ticks an hour exceeded Woot's 1000-request daily limit by itself.
+            await LoadFeedAsync(FeedPivot.SelectedIndex, true);
+
+            // The live tile is built from the Featured feed and nothing else updates
+            // it, so keep that one current even while another category is on screen.
+            if (FeedPivot.SelectedIndex != 0 && Feeds.Count > 0 && Feeds[0].IsLoaded)
+                await LoadFeedAsync(0, true);
+        }
+
+        /// <summary>
+        /// Loads a feed, re-fetching it only once its deals have aged past the refresh
+        /// interval so that revisiting a category costs nothing.
+        /// </summary>
+        private async Task LoadFeedIfStaleAsync(int index)
+        {
+            if (index < 0 || index >= Feeds.Count)
+                return;
+            await LoadFeedAsync(index, Feeds[index].IsStale(FeedRefreshInterval));
         }
 
         private async Task LoadFeedAsync(int index, bool forceRefresh)
@@ -203,6 +226,7 @@ namespace Woot.Uwp
                 var deals = await apiClient.GetFeedAsync(feed.Name, key, loadCancellation.Token);
                 feed.SetDeals(deals);
                 feed.IsLoaded = true;
+                feed.LastLoaded = DateTimeOffset.UtcNow;
                 UpdateFeedStatus(feed);
                 if (index == 0)
                     WootTileService.Update(null, feed.FeedOrderDeals);
