@@ -2,6 +2,13 @@
 
 ## v1.4.0 - Offline deals and a tile that keeps up
 
+- Kept the subcategory selector on screen instead of showing and hiding it. It
+  was collapsed for any category with no subcategories, which includes every
+  category that has not loaded yet, so moving to a new category removed the
+  control, resized the row underneath it and shifted the whole pivot up, then
+  put it all back a moment later. It now stays put and offers "All
+  subcategories" on its own until there is something else to choose.
+
 - Stopped decoding deal photos at full size. Woot serves large product images, and
   each one was decoded into memory at its native resolution to be drawn into a
   102-pixel thumbnail. Across eleven categories that was enough to get the app

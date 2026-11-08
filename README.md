@@ -34,9 +34,10 @@ when no deal in a category carries the required value the status line adds
 
 ## Filtering
 
-When Woot returns subcategories for the deals in a category, a selector appears
-beneath the toolbar listing them, and choosing one narrows the list. It is
-hidden for categories that have none, so it never shows up empty.
+When Woot returns subcategories for the deals in a category, the selector beneath
+the toolbar lists them, and choosing one narrows the list. The selector is always
+present, offering "All subcategories" on its own before a category has loaded or
+for one that has none, so moving between categories never shifts the layout.
 
 Woot tags each deal with a flat list that mixes the sites it appears on with the
 paths beneath them, such as
