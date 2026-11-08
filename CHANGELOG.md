@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.3.1 - Refresh within the request limit
+
+- Stopped the background refresh from overrunning Woot's daily request limit.
+  Every 15 minutes the app refreshed *all* loaded categories at once, so once a
+  few categories had been opened each tick cost several requests. With all
+  eleven categories loaded that worked out to 1,056 requests a day against a
+  1,000-per-day allowance, which left the app liable to be throttled for the
+  rest of the day. The timer now refreshes only the category on screen, plus
+  Featured when it is loaded but not visible, because the live tile is built
+  from Featured and nothing else keeps it current. That caps the timer at 96 to
+  192 requests a day and leaves the rest of the allowance for browsing.
+- Kept categories current despite the narrower refresh. Switching to a category
+  now re-fetches it if its deals are older than the 15-minute refresh interval,
+  instead of always reusing whatever was loaded first. Switching back to a
+  category seen moments ago still costs nothing.
+- Paused the refresh timer while the app is away from the deal list. It kept
+  ticking on the settings and deal details pages, spending requests on a list
+  that was not on screen. It now stops on navigating away and resumes, with a
+  staleness check, on returning.
+- Updated the package version to 1.3.1.0.
+
 ## v1.3.0 - Deal detail fixes
 
 - Removed the "Most popular" sort added in v1.2.0. It never worked: it ranked on
