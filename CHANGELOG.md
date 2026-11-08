@@ -2,6 +2,20 @@
 
 ## v1.4.0 - Offline deals and a tile that keeps up
 
+- Finished the job on the feed-load freeze. Handing the deals to the list was
+  still clearing it and adding them back one at a time, so a category with
+  three hundred deals raised three hundred and one separate change
+  notifications and the list redid its bookkeeping for every one of them. It
+  now hands over the whole set in a single update. The filtering and sorting
+  either side of that measured at well under a millisecond even for a thousand
+  deals, so it was left on the UI thread where it is simplest.
+
+- Added a progress line under the header while a category is loading, including
+  the quarter-hourly refresh of a category already on screen. It is a deliberate
+  choice of indicator: an indeterminate progress bar animates on the composition
+  thread, so it keeps moving even if the UI thread is briefly busy, which is the
+  one thing that can still say "working" rather than "crashed".
+
 - Stopped a feed load from freezing the app. The network call was already
   asynchronous, but the work either side of it was not: reading Woot's response
   into deals, writing those deals to the cache, and reading the cache back all

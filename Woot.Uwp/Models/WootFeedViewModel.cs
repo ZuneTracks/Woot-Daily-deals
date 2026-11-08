@@ -1,10 +1,37 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 
 namespace Woot.Uwp.Models
 {
+    /// <summary>
+    /// The deals a list is bound to, refillable with a single change notification.
+    /// <para>
+    /// Clearing and re-adding raises one notification per deal, and a refresh
+    /// replaces every deal in the feed. Several hundred of those make the ListView
+    /// repeat its bookkeeping several hundred times on the UI thread, which is
+    /// what the user feels as the app locking up mid-refresh. One reset does the
+    /// same job in one pass.
+    /// </para>
+    /// </summary>
+    public sealed class WootDealCollection : ObservableCollection<WootDeal>
+    {
+        public void Reset(IEnumerable<WootDeal> deals)
+        {
+            Items.Clear();
+            if (deals != null)
+            {
+                foreach (var deal in deals)
+                    Items.Add(deal);
+            }
+            OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+            OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
+    }
+
     public sealed class WootFeedViewModel : INotifyPropertyChanged
     {
         private readonly List<WootDeal> feedOrderDeals = new List<WootDeal>();
@@ -16,7 +43,7 @@ namespace Woot.Uwp.Models
         public WootFeedViewModel(string name)
         {
             Name = name;
-            Deals = new ObservableCollection<WootDeal>();
+            Deals = new WootDealCollection();
             StatusText = "Not loaded. Press Refresh if nothing appears.";
         }
 
@@ -26,7 +53,7 @@ namespace Woot.Uwp.Models
         /// The sorted collection the UI binds to. Always mutated in place so the
         /// existing bindings stay attached.
         /// </summary>
-        public ObservableCollection<WootDeal> Deals { get; private set; }
+        public WootDealCollection Deals { get; private set; }
 
         /// <summary>
         /// The deals as Woot returned them, independent of the current sort.
@@ -103,9 +130,7 @@ namespace Woot.Uwp.Models
                     visibleDeals.Add(deal);
             }
 
-            Deals.Clear();
-            foreach (var deal in WootDealSorter.Sort(visibleDeals, sort))
-                Deals.Add(deal);
+            Deals.Reset(WootDealSorter.Sort(visibleDeals, sort));
         }
 
         /// <summary>

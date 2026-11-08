@@ -93,9 +93,23 @@ namespace Woot.Uwp
             UpdateCategoryHeaders(FeedPivot.SelectedIndex);
             SyncSortSelector();
             SyncSubcategorySelector();
+            UpdateLoadingIndicator();
             if (!hasLoadedOnce)
                 return;
             await LoadFeedIfStaleAsync(FeedPivot.SelectedIndex);
+        }
+
+        /// <summary>
+        /// Shows the progress line while the category on screen is loading, including
+        /// a background refresh of a category the user is already reading. The
+        /// animation is switched off rather than just hidden so it stops costing
+        /// anything once the deals are in.
+        /// </summary>
+        private void UpdateLoadingIndicator()
+        {
+            var isLoading = loadingFeeds.Contains(FeedPivot.SelectedIndex);
+            LoadingBar.IsIndeterminate = isLoading;
+            LoadingBar.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void SyncSortSelector()
@@ -316,6 +330,7 @@ namespace Woot.Uwp
             }
 
             loadingFeeds.Add(index);
+            UpdateLoadingIndicator();
             using (var loadCancellation = new CancellationTokenSource())
             {
             feed.StatusText = "Loading " + feed.Name + "...";
@@ -363,6 +378,7 @@ namespace Woot.Uwp
             finally
             {
                 loadingFeeds.Remove(index);
+                UpdateLoadingIndicator();
             }
             }
         }
