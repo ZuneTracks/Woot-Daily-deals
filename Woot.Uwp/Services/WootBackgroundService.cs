@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
@@ -25,6 +26,8 @@ namespace Woot.Uwp.Services
     {
         public const string TileTaskName = "WootTileRefresh";
         private const string RegisteredVersionSetting = "WootBackgroundVersion";
+        private const string LastRunSetting = "WootTileLastRun";
+        private const string LastRunOutcomeSetting = "WootTileLastOutcome";
 
         /// <summary>
         /// Woot allows 1000 requests a day. One request every half hour is 48 of
@@ -78,23 +81,76 @@ namespace Woot.Uwp.Services
 
         /// <summary>
         /// Fetches the Featured feed and refreshes the tile and the cache from it.
+        /// <para>
+        /// The outcome is recorded so the settings page can say whether the task has
+        /// actually been running. A background task that never fires and one that
+        /// fires and fails look identical from the Start screen.
+        /// </para>
         /// </summary>
         public static async Task RunTileRefreshAsync()
         {
-            var key = WootApiKeyProvider.Get();
-            if (string.IsNullOrWhiteSpace(key))
-                return;
-
-            var client = new WootApiClient();
-
-            // Background work is killed outright if it overruns, so the request is
-            // given a deadline well inside the time the platform allows.
-            using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+            try
             {
-                var deals = await client.GetFeedAsync("Featured", key, timeout.Token);
-                await WootFeedCache.SaveAsync("Featured", deals);
-                WootTileService.Update(null, deals);
+                var key = WootApiKeyProvider.Get();
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    Record("no API key was available");
+                    return;
+                }
+
+                var client = new WootApiClient();
+
+                // Background work is killed outright if it overruns, so the request is
+                // given a deadline well inside the time the platform allows.
+                using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+                {
+                    var deals = await client.GetFeedAsync("Featured", key, timeout.Token);
+                    await WootFeedCache.SaveAsync("Featured", deals);
+                    WootTileService.Update(null, deals);
+                    Record(deals.Count + " featured deals");
+                }
             }
+            catch (Exception ex)
+            {
+                Record("failed - " + ex.Message);
+            }
+        }
+
+        private static void Record(string outcome)
+        {
+            var settings = ApplicationData.Current.LocalSettings.Values;
+            settings[LastRunSetting] = DateTimeOffset.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+            settings[LastRunOutcomeSetting] = outcome;
+        }
+
+        /// <summary>
+        /// A plain-language account of whether the tile is actually being kept up to
+        /// date, for the settings page.
+        /// </summary>
+        public static string DescribeStatus()
+        {
+            var settings = ApplicationData.Current.LocalSettings.Values;
+            var registered = FindRegistration() != null
+                ? "Scheduled every " + IntervalMinutes + " minutes."
+                : "Not scheduled. Windows may have refused background access.";
+
+            var stamp = settings[LastRunSetting] as string;
+            DateTimeOffset when;
+            if (string.IsNullOrEmpty(stamp) ||
+                !DateTimeOffset.TryParse(stamp, CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind, out when))
+                return registered + " It has not run yet.";
+
+            var outcome = settings[LastRunOutcomeSetting] as string;
+            var line = registered + " Last run " + WootFeedCache.DescribeAge(when) +
+                (string.IsNullOrEmpty(outcome) ? "." : " (" + outcome + ").");
+
+            var notifications = WootTileService.LastNotificationSetting;
+            if (!string.IsNullOrEmpty(notifications) &&
+                !string.Equals(notifications, "Enabled", StringComparison.Ordinal))
+                line += " Windows is not accepting tile updates for this app (" + notifications + ").";
+
+            return line;
         }
 
         private static IBackgroundTaskRegistration FindRegistration()

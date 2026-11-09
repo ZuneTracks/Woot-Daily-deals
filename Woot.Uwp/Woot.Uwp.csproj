@@ -162,6 +162,7 @@
     <Compile Include="Models\WootFeedViewModel.cs" />
     <Compile Include="Services\WootApiClient.cs" />
     <Compile Include="Services\WootTileService.cs" />
+    <Compile Include="Services\WootTileContent.cs" />
     <Compile Include="Services\WootFeedCache.cs" />
     <Compile Include="Services\WootBackgroundService.cs" />
     <Compile Include="Services\WootApiKeyProvider.cs" />

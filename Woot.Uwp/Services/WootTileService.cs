@@ -5,8 +5,6 @@ using Woot.Uwp.Models;
 using Windows.Data.Xml.Dom;
 using Windows.Storage;
 using Windows.UI.Notifications;
-using System.Diagnostics;
-using System.Text;
 
 namespace Woot.Uwp.Services
 {
@@ -14,6 +12,7 @@ namespace Woot.Uwp.Services
     {
         private const string LastViewedTitle = "WootLastViewedTitle";
         private const string LastViewedPrice = "WootLastViewedPrice";
+        private const string NotificationSetting = "WootTileNotificationSetting";
 
         public static void Update(WootDeal lastViewed, IEnumerable<WootDeal> featuredDeals)
         {
@@ -27,64 +26,25 @@ namespace Woot.Uwp.Services
             var title = lastViewed == null ? settings[LastViewedTitle] as string : lastViewed.Title;
             var price = lastViewed == null ? settings[LastViewedPrice] as string : lastViewed.SalePrice;
             var featured = featuredDeals == null ? new List<WootDeal>() : featuredDeals.Take(2).ToList();
+
             var document = new XmlDocument();
-            var xml = BuildTileXml(title, price, featured);
-            Debug.WriteLine("Woot tile XML: " + xml);
-            document.LoadXml(xml);
+            document.LoadXml(WootTileContent.Build(title, price, featured));
             var updater = TileUpdateManager.CreateTileUpdaterForApplication();
-            Debug.WriteLine("Woot tile updater created. Enabled=" + updater.Setting);
+
+            // If notifications are switched off for the app the update is accepted
+            // and then silently dropped, which looks exactly like a background task
+            // that never ran. Recording it lets the settings page tell them apart.
+            settings[NotificationSetting] = updater.Setting.ToString();
             updater.Update(new TileNotification(document));
-            Debug.WriteLine("Woot tile update submitted.");
         }
 
-        private static string BuildTileXml(string lastTitle, string lastPrice, IList<WootDeal> featured)
+        /// <summary>
+        /// What the system last told us about whether it is accepting tile updates
+        /// for this app, or null if the tile has never been written.
+        /// </summary>
+        public static string LastNotificationSetting
         {
-            var featuredText = featured.Count == 0
-                ? "Featured: refresh the app to load deals."
-                : "Featured: " + (featured[0].Title ?? string.Empty);
-            if (featured.Count > 1)
-                featuredText += " | " + (featured[1].Title ?? string.Empty);
-            var lastViewedText = string.IsNullOrWhiteSpace(lastTitle)
-                ? "Last viewed: open a deal."
-                : "Last viewed: " + lastTitle + (string.IsNullOrWhiteSpace(lastPrice) ? string.Empty : " - " + lastPrice);
-            var lines = new List<string>
-            {
-                lastViewedText,
-                "WOOT! DEALS",
-                featuredText
-            };
-
-            return "<tile><visual>" +
-                BuildBinding("TileWide310x150Text03", "TileWideText03", lines) +
-                BuildBinding("TileSquare150x150Text04", "TileSquareText04", lines) +
-                BuildBinding("TileSquare310x310Text03", "TileSquare310x310Text03", lines) +
-                "</visual></tile>";
-        }
-
-        private static string BuildBinding(string template, string fallback, IList<string> lines)
-        {
-            return "<binding template='" + template + "' fallback='" + fallback + "'>" +
-                string.Join(string.Empty, lines.Select((line, index) => "<text id='" + (index + 1) + "'>" + Escape(line) + "</text>")) +
-                "</binding>";
-        }
-
-        private static string Escape(string value)
-        {
-            var text = value ?? string.Empty;
-            var builder = new StringBuilder(text.Length);
-            foreach (var character in text)
-            {
-                if (IsXmlCharacter(character))
-                    builder.Append(character);
-            }
-            return builder.ToString().Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
-        }
-
-        private static bool IsXmlCharacter(char character)
-        {
-            return character == '\t' || character == '\n' || character == '\r' ||
-                (character >= '\u0020' && character <= '\uD7FF') ||
-                (character >= '\uE000' && character <= '\uFFFD');
+            get { return ApplicationData.Current.LocalSettings.Values[NotificationSetting] as string; }
         }
     }
 }
