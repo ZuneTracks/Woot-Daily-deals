@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.0 - Offline deals and a tile that keeps up
+## v1.5.0 - Offline deals and a tile that keeps up
 
 - Fixed the live tile never showing the featured deals. The tile was drawn with
   two of the old Windows 8 templates, and each of those renders only its first
@@ -73,7 +73,7 @@
   categories were missing text wrapping, so anything longer than one line was cut
   off mid-word: the Woot-Off explanation ended at "Woot-Offs are occasio". All
   eleven now share one style, so a category cannot drift out of step again.
-- Updated the package version to 1.4.0.0.
+- Updated the package version to 1.5.0.0.
 
 ## v1.3.2 - Filter by subcategory
 
